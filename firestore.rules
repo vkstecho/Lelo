@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null &&
+        request.auth.token.phone_number in ["+917497073993", "+918929394920"];
+    }
+
+    function isOwner(phone) {
+      return request.auth != null && request.auth.token.phone_number == phone;
+    }
+
+    // Menu: anyone signed in can read, only admin can write
+    match /categories/{catId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+    match /items/{itemId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // Store-wide settings (e.g. delivery contact)
+    match /settings/{docId} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
+    }
+
+    // Users: doc id = phone number. A user can create/read only their own
+    // doc (first login). Only admin can change blocked/expiryDate.
+    match /users/{phone} {
+      allow read: if isOwner(phone) || isAdmin();
+      allow create: if isOwner(phone);
+      allow update: if isAdmin();
+    }
+
+    // Orders: a user can create an order under their own phone number and
+    // read only their own orders. Admin can read/update all orders.
+    match /orders/{orderId} {
+      allow create: if request.auth != null && request.resource.data.phone == request.auth.token.phone_number;
+      allow read: if isAdmin() || (request.auth != null && resource.data.phone == request.auth.token.phone_number);
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+  }
+}

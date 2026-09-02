@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script>
+  // Force HTTPS. Over plain HTTP, some mobile carriers inject their own
+  // scripts into the page — which is what causes errors like "Cannot use
+  // import statement outside a module" that have nothing to do with this
+  // app's own code. HTTPS also blocks that kind of injection entirely.
+  if(location.protocol === "http:" && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){
+    location.replace("https://" + location.host + location.pathname + location.search);
+  }
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Lelo Sab Kuchh &mdash; Food &amp; Grocery Delivery</title>
+<link rel="icon" href="lelo-logo.jpg" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --green:#1F6E3D;
+    --green-dark:#154D2A;
+    --orange:#F4791E;
+    --orange-dark:#D8630F;
+    --cream:#FFF8EE;
+    --card:#FFFFFF;
+    --ink:#2B2620;
+    --ink-soft:#786F62;
+    --line:#EDE3D2;
+    --red:#C0392B;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.brand{ font-family:'Baloo 2',sans-serif; }
+  #root{ min-height:100vh; display:flex; justify-content:center; }
+  .shell{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    background:var(--cream);
+    display:flex;
+    flex-direction:column;
+    position:relative;
+  }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:14px 18px;
+    background:var(--card);
+    border-bottom:1px solid var(--line);
+    position:sticky;
+    top:0;
+    z-index:20;
+  }
+  .topbar img{ width:38px; height:38px; object-fit:contain; border-radius:9px; }
+  .topbar .brand{ font-size:20px; font-weight:700; color:var(--green); line-height:1; }
+  .topbar .brand span{ color:var(--orange); }
+  .topbar .tag{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
+  .topbar .spacer{ flex:1; }
+  .icon-btn{
+    background:none; border:none; cursor:pointer; color:var(--ink-soft);
+    font-size:13px; font-weight:600; padding:6px 10px; border-radius:10px;
+  }
+  .icon-btn:hover{ background:var(--cream); }
+
+  /* ---------- Generic ---------- */
+  .screen{ flex:1; padding:18px; padding-bottom:90px; }
+  .center-screen{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px;
+  }
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    border:none; border-radius:12px; padding:12px 18px;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:15px;
+    cursor:pointer; width:100%;
+  }
+  .btn-primary{ background:var(--green); color:#fff; }
+  .btn-primary:hover{ background:var(--green-dark); }
+  .btn-orange{ background:var(--orange); color:#fff; }
+  .btn-orange:hover{ background:var(--orange-dark); }
+  .btn-outline{ background:transparent; color:var(--green); border:1.5px solid var(--green); }
+  .btn-danger{ background:transparent; color:var(--red); border:1.5px solid var(--red); }
+  .btn-sm{ width:auto; padding:8px 12px; font-size:13px; border-radius:9px; }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; }
+  input[type=text], input[type=tel], input[type=number], input[type=password], select{
+    width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:11px;
+    font-size:15px; font-family:'Inter',sans-serif; background:#fff; color:var(--ink);
+  }
+  input:focus, select:focus{ outline:2px solid var(--green); outline-offset:1px; }
+  label.field-label{ display:block; font-size:13px; font-weight:600; color:var(--ink-soft); margin:0 0 6px 2px; }
+  .field{ margin-bottom:14px; }
+  .error-text{ color:var(--red); font-size:13px; margin-top:8px; }
+  .muted{ color:var(--ink-soft); font-size:13px; }
+  .row{ display:flex; align-items:center; }
+  .row.between{ justify-content:space-between; }
+  .row.gap{ gap:10px; }
+  .badge{ font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; }
+  .badge-green{ background:#E6F3EA; color:var(--green); }
+  .badge-orange{ background:#FDECDC; color:var(--orange-dark); }
+  .badge-red{ background:#FBE7E4; color:var(--red); }
+  .badge-grey{ background:#F0EEE9; color:var(--ink-soft); }
+  .divider{ height:1px; background:var(--line); margin:14px 0; }
+  .empty-state{ text-align:center; padding:50px 20px; color:var(--ink-soft); }
+  .empty-state .emoji{ font-size:42px; display:block; margin-bottom:10px; }
+
+  /* ---------- Login ---------- */
+  .login-logo{ width:120px; height:120px; object-fit:contain; margin-bottom:6px; }
+  .login-title{ font-size:26px; font-weight:700; color:var(--green); margin:6px 0 2px; }
+  .login-title span{ color:var(--orange); }
+  .login-sub{ color:var(--ink-soft); font-size:14px; margin-bottom:26px; }
+  .phone-input-wrap{ display:flex; gap:8px; }
+  .phone-prefix{
+    display:flex; align-items:center; justify-content:center;
+    padding:0 14px; border:1.5px solid var(--line); border-radius:11px;
+    font-weight:600; color:var(--ink-soft); background:#fff;
+  }
+  .otp-boxes{ display:flex; gap:8px; justify-content:center; margin:18px 0; }
+  .otp-boxes input{ width:42px; height:52px; text-align:center; font-size:20px; font-weight:700; padding:0; }
+  .full-w{ width:100%; }
+
+  /* ---------- Bottom tabs ---------- */
+  .tabbar{
+    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+    width:100%; max-width:480px; background:var(--card);
+    border-top:1px solid var(--line);
+    display:flex; z-index:20;
+  }
+  .tab-btn{
+    flex:1; background:none; border:none; padding:10px 4px 12px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    color:var(--ink-soft); font-family:'Inter',sans-serif; position:relative;
+  }
+  .tab-btn .tab-icon{ font-size:20px; }
+  .tab-btn .tab-label{ font-size:11px; font-weight:600; }
+  .tab-btn.active{ color:var(--green); }
+  .tab-btn .cart-count{
+    position:absolute; top:2px; right:calc(50% - 22px);
+    background:var(--orange); color:#fff; font-size:10px; font-weight:700;
+    min-width:16px; height:16px; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:0 3px;
+  }
+
+  /* ---------- Menu / items ---------- */
+  .category-title{ font-size:17px; font-weight:700; color:var(--green-dark); margin:22px 0 10px; }
+  .category-title:first-child{ margin-top:0; }
+  .item-row{
+    display:flex; align-items:center; gap:12px;
+    background:var(--card); border:1px solid var(--line); border-radius:14px;
+    padding:12px; margin-bottom:10px;
+  }
+  .item-icon{
+    width:46px; height:46px; border-radius:12px; background:var(--cream);
+    display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0;
+  }
+  .item-info{ flex:1; min-width:0; }
+  .item-name{ font-weight:600; font-size:15px; }
+  .item-price{ color:var(--orange-dark); font-weight:700; font-size:14px; margin-top:2px; }
+  .stepper{ display:flex; align-items:center; gap:0; border:1.5px solid var(--green); border-radius:10px; overflow:hidden; }
+  .stepper button{ background:var(--green); color:#fff; border:none; width:30px; height:30px; font-size:16px; cursor:pointer; }
+  .stepper span{ min-width:26px; text-align:center; font-weight:700; font-size:14px; }
+  .add-btn{ background:var(--green); color:#fff; border:none; padding:8px 16px; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; }
+
+  /* ---------- Cart ---------- */
+  .cart-row{ display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); }
+  .cart-row:last-child{ border-bottom:none; }
+  .cart-total-bar{
+    position:fixed; bottom:64px; left:50%; transform:translateX(-50%);
+    width:100%; max-width:480px; background:var(--green); color:#fff;
+    padding:14px 18px; display:flex; align-items:center; justify-content:space-between;
+    z-index:19; border-radius:16px 16px 0 0;
+  }
+
+  /* ---------- Admin ---------- */
+  .admin-topbar{ background:var(--green); }
+  .admin-topbar .brand, .admin-topbar .tag{ color:#fff !important; }
+  .admin-tabs{ display:flex; gap:6px; padding:12px 18px 0; background:var(--card); border-bottom:1px solid var(--line); position:sticky; top:66px; z-index:19; }
+  .admin-tab{
+    flex:1; text-align:center; padding:10px 4px; border-radius:10px 10px 0 0;
+    font-size:13px; font-weight:700; cursor:pointer; color:var(--ink-soft); border-bottom:3px solid transparent;
+  }
+  .admin-tab.active{ color:var(--green); border-bottom:3px solid var(--green); }
+  .order-card{ border-left:4px solid var(--line); }
+  .order-card.status-new{ border-left-color:var(--orange); background:#FFFAF3; }
+  .order-card.status-delivered{ border-left-color:var(--green); }
+  .status-pill{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .status-pill button{
+    flex:1; min-width:80px; padding:7px 6px; border-radius:8px; border:1px solid var(--line);
+    background:#fff; font-size:12px; font-weight:600; cursor:pointer; color:var(--ink-soft);
+  }
+  .status-pill button.current{ background:var(--green); color:#fff; border-color:var(--green); }
+  .toggle{
+    width:42px; height:24px; border-radius:14px; background:var(--line); position:relative; cursor:pointer; border:none; flex-shrink:0;
+  }
+  .toggle.on{ background:var(--red); }
+  .toggle .knob{ position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:#fff; transition:left .15s; }
+  .toggle.on .knob{ left:20px; }
+  .emoji-pick{ display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
+  .emoji-pick button{ font-size:18px; background:var(--cream); border:1px solid var(--line); border-radius:8px; padding:5px 8px; cursor:pointer; }
+  .toast{
+    position:fixed; top:14px; left:50%; transform:translateX(-50%); max-width:440px; width:calc(100% - 32px);
+    background:var(--green-dark); color:#fff; padding:12px 16px; border-radius:12px; z-index:60; font-size:14px; font-weight:600;
+    box-shadow:0 8px 24px rgba(0,0,0,.18);
+  }
+</style>
+</head>
+<body>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1F6E3D">
+<link rel="apple-touch-icon" href="icon-192.png">
+<noscript>Please enable JavaScript to use Lelo Sab Kuchh.</noscript>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch((err) => console.warn("Service worker failed:", err));
+    });
+  }
+</script>
+
+<div id="root">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:Inter,sans-serif;color:#786F62;gap:12px;">
+    <img src="lelo-logo.jpg" style="width:100px;" alt="" />
+    <span>Loading Lelo Sab Kuchh…</span>
+  </div>
+</div>
+
+<script>
+  // Plain, non-React watchdog: if the real app hasn't mounted within 8s
+  // (blocked script, no internet, ad-blocker, syntax error, etc.), replace
+  // the "Loading…" placeholder with an actual diagnostic instead of leaving
+  // the phone stuck on that screen forever with no explanation.
+  window.__leloBootError = null;
+  window.addEventListener("error", function(e){
+    window.__leloBootError = (e.message || "Unknown script error") +
+      (e.filename ? " — " + e.filename.split("/").pop() + ":" + e.lineno : "");
+  });
+  window.addEventListener("unhandledrejection", function(e){
+    window.__leloBootError = "Promise error: " + (e.reason && e.reason.message ? e.reason.message : e.reason);
+  });
+  if(location.protocol === "http:"){
+    window.__leloBootError = "This page loaded over an insecure connection (http, not https). On mobile data, your carrier can inject broken scripts into http pages — that's almost always the real cause of errors here. Ask your host to enable HTTPS/SSL for this domain.";
+  }
+  setTimeout(function(){
+    if(window.__leloMounted) return;
+    var root = document.getElementById("root");
+    if(!root) return;
+    root.innerHTML =
+      '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:Inter,sans-serif;color:#2B2620;padding:28px;text-align:center;gap:10px;">' +
+      '<div style="font-size:40px;">⚠️</div>' +
+      '<div style="font-weight:700;font-size:17px;">The app is taking too long to load</div>' +
+      '<div style="color:#786F62;font-size:14px;max-width:320px;">This usually means a script got blocked (no internet, an ad-blocker, or a firewall) or the page failed to build.</div>' +
+      (window.__leloBootError ? '<div style="font-size:12px;color:#C0392B;word-break:break-word;max-width:320px;">' + window.__leloBootError + '</div>' : '') +
+      '<button onclick="window.location.reload()" style="margin-top:10px;background:#1F6E3D;color:#fff;border:none;border-radius:12px;padding:12px 22px;font-weight:700;font-size:15px;">Reload</button>' +
+      '</div>';
+  }, 8000);
+</script>
+
+<!-- React -->
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<!-- Firebase (compat build so it can run without a bundler) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+
+/* =========================================================
+   FIREBASE SETUP
+   ========================================================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyAs_2kLgsw3udhZXcbODAf5GduXfOjVG3Q",
+  authDomain: "lelo-sab-kuchh.firebaseapp.com",
+  projectId: "lelo-sab-kuchh",
+  storageBucket: "lelo-sab-kuchh.firebasestorage.app",
+  messagingSenderId: "342006864517",
+  appId: "1:342006864517:web:01be2ea13bb213609267ec"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const ADMIN_NUMBERS = ["+917497073993", "+918929394920"];
+const DEFAULT_VALIDITY_DAYS = 180;
+const APP_NAME = "Lelo Sab Kuchh";
+
+/* =========================================================
+   HELPERS
+   ========================================================= */
+function fmtDate(d){
+  if(!d) return "-";
+  const date = d.toDate ? d.toDate() : new Date(d);
+  return date.toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" });
+}
+function daysLeft(expiry){
+  if(!expiry) return 0;
+  const date = expiry.toDate ? expiry.toDate() : new Date(expiry);
+  return Math.ceil((date.getTime() - Date.now()) / 86400000);
+}
+function addDaysToDate(baseDate, days){
+  const d = baseDate ? new Date(baseDate) : new Date();
+  d.setDate(d.getDate() + days);
+  return d;
+}
+function rupee(n){ return "\u20B9" + Number(n || 0).toFixed(0); }
+function cx(...a){ return a.filter(Boolean).join(" "); }
+
+const FOOD_EMOJIS = ["🍕","🍔","🍟","🌮","🍗","🍛","🍜","🍚","🥗","🍞","🥛","🧀","🥦","🍎","🍌","🧃","☕","🍫","🥤","🍚"];
+
+/* =========================================================
+   TOAST
+   ========================================================= */
+function useToast(){
+  const [msg, setMsg] = useState(null);
+  const show = useCallback((m) => {
+    setMsg(m);
+    setTimeout(() => setMsg(null), 2600);
+  }, []);
+  const node = msg ? <div className="toast">{msg}</div> : null;
+  return [node, show];
+}
+
+/* =========================================================
+   LOGIN FLOW (Firebase Phone Auth OTP)
+   ========================================================= */
+function humanizeAuthError(e){
+  const code = e && e.code;
+  const map = {
+    "auth/invalid-app-credential": "This domain isn't authorized for OTP login yet. Add it under Firebase Console → Authentication → Settings → Authorized domains.",
+    "auth/argument-error": "OTP login isn't set up for this domain yet. Add it under Firebase Console → Authentication → Settings → Authorized domains.",
+    "auth/too-many-requests": "Too many attempts. Please wait a bit and try again.",
+    "auth/quota-exceeded": "SMS quota reached for today. Please try again later.",
+    "auth/invalid-phone-number": "That doesn't look like a valid mobile number.",
+    "auth/network-request-failed": "Network error. Check your connection and try again.",
+    "auth/operation-not-allowed": "Phone sign-in isn't enabled yet. Enable it in Firebase Console → Authentication → Sign-in method.",
+  };
+  return map[code] || (e && e.message) || "Could not send OTP. Please try again.";
+}
+
+function LoginScreen({ onLoggedIn }){
+  const [step, setStep] = useState("phone"); // phone | otp
+  const [phone, setPhone] = useState("");
+  const [otp, setOtp] = useState(["","","","","",""]);
+  const [confirmation, setConfirmation] = useState(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // The reCAPTCHA verifier is created lazily, right when the person taps
+  // "Send OTP" — not on page load. Creating it on load is what causes a
+  // blank white screen if the domain isn't authorized yet or the reCAPTCHA
+  // script is blocked, since it can throw before anything is on screen.
+  const getRecaptcha = () => {
+    if(window.__leloRecaptcha){
+      try{ window.__leloRecaptcha.clear(); }catch(e){}
+      window.__leloRecaptcha = null;
+    }
+    window.__leloRecaptcha = new firebase.auth.RecaptchaVerifier("recaptcha-container", {
+      size: "invisible",
+    });
+    return window.__leloRecaptcha;
+  };
+
+  const sendOtp = async () => {
+    setError("");
+    if(!/^[6-9]\d{9}$/.test(phone)){
+      setError("Enter a valid 10-digit mobile number.");
+      return;
+    }
+    setLoading(true);
+    try{
+      const verifier = getRecaptcha();
+      const result = await auth.signInWithPhoneNumber("+91" + phone, verifier);
+      setConfirmation(result);
+      setStep("otp");
+    }catch(e){
+      console.error(e);
+      setError(humanizeAuthError(e));
+    }
+    setLoading(false);
+  };
+
+  const verifyOtp = async () => {
+    setError("");
+    const code = otp.join("");
+    if(code.length !== 6){ setError("Enter the 6-digit code."); return; }
+    setLoading(true);
+    try{
+      await confirmation.confirm(code);
+      onLoggedIn();
+    }catch(e){
+      console.error(e);
+      setError("Incorrect code. Please try again.");
+    }
+    setLoading(false);
+  };
+
+  const setOtpDigit = (i, v) => {
+    if(!/^\d?$/.test(v)) return;
+    const next = [...otp]; next[i] = v; setOtp(next);
+    if(v && i < 5) document.getElementById("otp-" + (i+1))?.focus();
+  };
+
+  return (
+    <div className="center-screen">
+      <img src="lelo-logo.jpg" className="login-logo" alt="Lelo Sab Kuchh" />
+      <div className="login-sub" style={{marginBottom: 24}}>Food &amp; grocery, delivered to your door.</div>
+
+      {step === "phone" && (
+        <div style={{width:"100%"}}>
+          <div className="field">
+            <label className="field-label">Mobile number</label>
+            <div className="phone-input-wrap">
+              <div className="phone-prefix">+91</div>
+              <input type="tel" maxLength="10" placeholder="98765 43210"
+                value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g,""))} />
+            </div>
+          </div>
+          {error && <div className="error-text">{error}</div>}
+          <button className="btn btn-orange" style={{marginTop:10}} disabled={loading} onClick={sendOtp}>
+            {loading ? "Sending..." : "Send OTP"}
+          </button>
+        </div>
+      )}
+
+      {step === "otp" && (
+        <div style={{width:"100%"}}>
+          <div className="muted">Code sent to +91 {phone}</div>
+          <div className="otp-boxes">
+            {otp.map((d,i) => (
+              <input key={i} id={"otp-"+i} type="text" inputMode="numeric" maxLength="1"
+                value={d} onChange={e => setOtpDigit(i, e.target.value)} />
+            ))}
+          </div>
+          {error && <div className="error-text">{error}</div>}
+          <button className="btn btn-primary" disabled={loading} onClick={verifyOtp}>
+            {loading ? "Verifying..." : "Verify & Continue"}
+          </button>
+          <button className="btn" style={{background:"transparent", color:"var(--ink-soft)", marginTop:6}}
+            onClick={() => { setStep("phone"); setOtp(["","","","","",""]); }}>
+            Change number
+          </button>
+        </div>
+      )}
+
+      <div id="recaptcha-container"></div>
+    </div>
+  );
+}
+
+/* =========================================================
+   BLOCKED / EXPIRED SCREENS
+   ========================================================= */
+function StatusScreen({ emoji, title, sub, onLogout }){
+  return (
+    <div className="center-screen">
+      <div style={{fontSize:52}}>{emoji}</div>
+      <h2 style={{margin:"14px 0 6px"}}>{title}</h2>
+      <p className="muted">{sub}</p>
+      <button className="btn btn-outline" style={{marginTop:20, width:"auto", padding:"10px 24px"}} onClick={onLogout}>Log out</button>
+    </div>
+  );
+}
+
+/* =========================================================
+   USER APP
+   ========================================================= */
+function UserApp({ phone, userDoc, onLogout, showToast }){
+  const [tab, setTab] = useState("menu");
+  const [categories, setCategories] = useState([]);
+  const [items, setItems] = useState([]);
+  const [cart, setCart] = useState({});
+  const [deliveryPerson, setDeliveryPerson] = useState(null);
+  const [myOrders, setMyOrders] = useState([]);
+  const [placing, setPlacing] = useState(false);
+
+  useEffect(() => {
+    const unsub1 = db.collection("categories").orderBy("name").onSnapshot(snap => {
+      setCategories(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    const unsub2 = db.collection("items").onSnapshot(snap => {
+      setItems(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    const unsub3 = db.collection("settings").doc("deliveryPerson").onSnapshot(snap => {
+      setDeliveryPerson(snap.exists ? snap.data() : null);
+    });
+    const unsub4 = db.collection("orders").where("phone", "==", phone)
+      .orderBy("createdAt", "desc").onSnapshot(snap => {
+        setMyOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      }, err => console.error(err));
+    return () => { unsub1(); unsub2(); unsub3(); unsub4(); };
+  }, [phone]);
+
+  const cartCount = Object.values(cart).reduce((a,b) => a+b, 0);
+  const cartLines = useMemo(() => {
+    return Object.entries(cart).filter(([,q]) => q > 0).map(([id,q]) => {
+      const item = items.find(i => i.id === id);
+      return item ? { ...item, qty: q } : null;
+    }).filter(Boolean);
+  }, [cart, items]);
+  const cartTotal = cartLines.reduce((sum, l) => sum + l.price * l.qty, 0);
+
+  const setQty = (id, qty) => setCart(c => ({ ...c, [id]: Math.max(0, qty) }));
+
+  const confirmOrder = () => {
+    if(cartLines.length === 0) return;
+    setPlacing(true);
+    const finalize = (location) => {
+      db.collection("orders").add({
+        phone,
+        items: cartLines.map(l => ({ itemId: l.id, name: l.name, price: l.price, qty: l.qty })),
+        total: cartTotal,
+        status: "new",
+        location: location || null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      }).then(() => {
+        setCart({});
+        setPlacing(false);
+        setTab("orders");
+        showToast("Order placed! The store has been notified.");
+      }).catch(e => { console.error(e); setPlacing(false); showToast("Could not place order. Try again."); });
+    };
+    if(navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(
+        pos => finalize({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => finalize(null),
+        { timeout: 6000 }
+      );
+    } else {
+      finalize(null);
+    }
+  };
+
+  const grouped = categories.map(cat => ({
+    ...cat,
+    items: items.filter(i => i.categoryId === cat.id),
+  })).filter(c => c.items.length > 0);
+  const uncategorized = items.filter(i => !categories.some(c => c.id === i.categoryId));
+
+  const statusLabel = { new:"Order received", preparing:"Preparing", out:"Out for delivery", delivered:"Delivered" };
+  const statusBadge = { new:"badge-orange", preparing:"badge-orange", out:"badge-green", delivered:"badge-green" };
+
+  return (
+    <React.Fragment>
+      <div className="topbar">
+        <img src="lelo-logo.jpg" alt="logo" />
+        <div>
+          <div className="brand">Lelo <span>Sab Kuchh</span></div>
+          <div className="tag">+91 {phone}</div>
+        </div>
+        <div className="spacer"></div>
+        <button className="icon-btn" onClick={onLogout}>Log out</button>
+      </div>
+
+      <div className="screen">
+        {tab === "menu" && (
+          items.length === 0 ? (
+            <div className="empty-state"><span className="emoji">🍽️</span>Menu is being set up.<br/>Please check back soon.</div>
+          ) : (
+            <React.Fragment>
+              {grouped.map(cat => (
+                <div key={cat.id}>
+                  <div className="category-title">{cat.name}</div>
+                  {cat.items.map(item => (
+                    <MenuItemRow key={item.id} item={item} qty={cart[item.id] || 0} setQty={q => setQty(item.id, q)} />
+                  ))}
+                </div>
+              ))}
+              {uncategorized.length > 0 && (
+                <div>
+                  <div className="category-title">Other items</div>
+                  {uncategorized.map(item => (
+                    <MenuItemRow key={item.id} item={item} qty={cart[item.id] || 0} setQty={q => setQty(item.id, q)} />
+                  ))}
+                </div>
+              )}
+            </React.Fragment>
+          )
+        )}
+
+        {tab === "cart" && (
+          cartLines.length === 0 ? (
+            <div className="empty-state"><span className="emoji">🛒</span>Your cart is empty.<br/>Add items from the menu.</div>
+          ) : (
+            <div className="card">
+              {cartLines.map(l => (
+                <div className="cart-row" key={l.id}>
+                  <div className="item-icon" style={{width:38,height:38,fontSize:19}}>{l.icon || "🍽️"}</div>
+                  <div className="item-info">
+                    <div className="item-name">{l.name}</div>
+                    <div className="item-price">{rupee(l.price)} x {l.qty} = {rupee(l.price*l.qty)}</div>
+                  </div>
+                  <div className="stepper">
+                    <button onClick={() => setQty(l.id, l.qty - 1)}>−</button>
+                    <span>{l.qty}</span>
+                    <button onClick={() => setQty(l.id, l.qty + 1)}>+</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
+        )}
+
+        {tab === "contact" && (
+          <div className="card" style={{textAlign:"center", padding:26}}>
+            <div style={{fontSize:40}}>🛵</div>
+            {deliveryPerson ? (
+              <React.Fragment>
+                <h3 style={{margin:"10px 0 2px"}}>{deliveryPerson.name || "Delivery partner"}</h3>
+                <div className="muted" style={{marginBottom:18}}>+91 {deliveryPerson.phone}</div>
+                <div className="row gap">
+                  <a className="btn btn-primary" href={"tel:+91" + deliveryPerson.phone}>📞 Call</a>
+                  <a className="btn btn-orange" href={"https://wa.me/91" + deliveryPerson.phone} target="_blank" rel="noreferrer">💬 WhatsApp</a>
+                </div>
+              </React.Fragment>
+            ) : (
+              <p className="muted">Delivery contact hasn't been set up yet.</p>
+            )}
+          </div>
+        )}
+
+        {tab === "orders" && (
+          myOrders.length === 0 ? (
+            <div className="empty-state"><span className="emoji">📦</span>You have no orders yet.</div>
+          ) : (
+            myOrders.map(o => (
+              <div className="card" key={o.id} style={{marginBottom:12}}>
+                <div className="row between">
+                  <span className="muted">{o.createdAt ? fmtDate(o.createdAt) : "Just now"}</span>
+                  <span className={cx("badge", statusBadge[o.status] || "badge-grey")}>{statusLabel[o.status] || o.status}</span>
+                </div>
+                <div className="divider"></div>
+                {o.items.map((it,idx) => (
+                  <div key={idx} className="row between" style={{fontSize:14, marginBottom:4}}>
+                    <span>{it.name} x {it.qty}</span>
+                    <span>{rupee(it.price * it.qty)}</span>
+                  </div>
+                ))}
+                <div className="divider"></div>
+                <div className="row between" style={{fontWeight:700}}>
+                  <span>Total</span><span>{rupee(o.total)}</span>
+                </div>
+              </div>
+            ))
+          )
+        )}
+      </div>
+
+      {tab === "cart" && cartLines.length > 0 && (
+        <div className="cart-total-bar">
+          <div>
+            <div style={{fontSize:12, opacity:.85}}>{cartCount} item{cartCount>1?"s":""}</div>
+            <div style={{fontWeight:700, fontSize:17}}>{rupee(cartTotal)}</div>
+          </div>
+          <button className="btn btn-orange" style={{width:"auto", padding:"11px 22px"}} disabled={placing} onClick={confirmOrder}>
+            {placing ? "Placing..." : "Confirm order"}
+          </button>
+        </div>
+      )}
+
+      <div className="tabbar">
+        <TabBtn active={tab==="menu"} onClick={() => setTab("menu")} icon="🍽️" label="Menu" />
+        <TabBtn active={tab==="cart"} onClick={() => setTab("cart")} icon="🛒" label="Cart" count={cartCount} />
+        <TabBtn active={tab==="orders"} onClick={() => setTab("orders")} icon="📦" label="Orders" />
+        <TabBtn active={tab==="contact"} onClick={() => setTab("contact")} icon="🛵" label="Delivery" />
+      </div>
+    </React.Fragment>
+  );
+}
+
+function MenuItemRow({ item, qty, setQty }){
+  return (
+    <div className="item-row">
+      <div className="item-icon">{item.icon || "🍽️"}</div>
+      <div className="item-info">
+        <div className="item-name">{item.name}</div>
+        <div className="item-price">{rupee(item.price)}</div>
+      </div>
+      {qty > 0 ? (
+        <div className="stepper">
+          <button onClick={() => setQty(qty - 1)}>−</button>
+          <span>{qty}</span>
+          <button onClick={() => setQty(qty + 1)}>+</button>
+        </div>
+      ) : (
+        <button className="add-btn" onClick={() => setQty(1)}>Add</button>
+      )}
+    </div>
+  );
+}
+
+function TabBtn({ active, onClick, icon, label, count }){
+  return (
+    <button className={cx("tab-btn", active && "active")} onClick={onClick}>
+      {count > 0 && <span className="cart-count">{count}</span>}
+      <span className="tab-icon">{icon}</span>
+      <span className="tab-label">{label}</span>
+    </button>
+  );
+}
+
+/* =========================================================
+   ADMIN APP
+   ========================================================= */
+function AdminApp({ phone, onLogout, showToast }){
+  const [tab, setTab] = useState("items");
+  const [categories, setCategories] = useState([]);
+  const [items, setItems] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [deliveryPerson, setDeliveryPerson] = useState({ name:"", phone:"" });
+  const prevNewCount = useRef(0);
+
+  useEffect(() => {
+    if("Notification" in window && Notification.permission === "default"){
+      Notification.requestPermission();
+    }
+    const u1 = db.collection("categories").orderBy("name").onSnapshot(s => setCategories(s.docs.map(d => ({id:d.id, ...d.data()}))));
+    const u2 = db.collection("items").onSnapshot(s => setItems(s.docs.map(d => ({id:d.id, ...d.data()}))));
+    const u3 = db.collection("users").orderBy("createdAt", "desc").onSnapshot(s => setUsers(s.docs.map(d => ({id:d.id, ...d.data()}))));
+    const u4 = db.collection("orders").orderBy("createdAt", "desc").limit(200).onSnapshot(s => {
+      const list = s.docs.map(d => ({id:d.id, ...d.data()}));
+      const newCount = list.filter(o => o.status === "new").length;
+      if(newCount > prevNewCount.current){
+        showToast("🔔 New order received!");
+        if("Notification" in window && Notification.permission === "granted"){
+          new Notification(APP_NAME, { body: "A new order has come in." });
+        }
+      }
+      prevNewCount.current = newCount;
+      setOrders(list);
+    });
+    const u5 = db.collection("settings").doc("deliveryPerson").onSnapshot(s => {
+      if(s.exists) setDeliveryPerson(s.data());
+    });
+    return () => { u1(); u2(); u3(); u4(); u5(); };
+  }, []);
+
+  const newOrdersCount = orders.filter(o => o.status === "new").length;
+
+  return (
+    <React.Fragment>
+      <div className="topbar admin-topbar">
+        <img src="lelo-logo.jpg" alt="logo" />
+        <div>
+          <div className="brand">Admin console</div>
+          <div className="tag">+91 {phone}</div>
+        </div>
+        <div className="spacer"></div>
+        <button className="icon-btn" style={{color:"#fff"}} onClick={onLogout}>Log out</button>
+      </div>
+
+      <div className="admin-tabs">
+        <div className={cx("admin-tab", tab==="items" && "active")} onClick={() => setTab("items")}>Items</div>
+        <div className={cx("admin-tab", tab==="users" && "active")} onClick={() => setTab("users")}>Users</div>
+        <div className={cx("admin-tab", tab==="orders" && "active")} onClick={() => setTab("orders")}>
+          Orders{newOrdersCount > 0 ? " (" + newOrdersCount + ")" : ""}
+        </div>
+      </div>
+
+      <div className="screen">
+        {tab === "items" && <AdminItems categories={categories} items={items} deliveryPerson={deliveryPerson} showToast={showToast} />}
+        {tab === "users" && <AdminUsers users={users} showToast={showToast} />}
+        {tab === "orders" && <AdminOrders orders={orders} />}
+      </div>
+    </React.Fragment>
+  );
+}
+
+function AdminItems({ categories, items, deliveryPerson, showToast }){
+  const [catName, setCatName] = useState("");
+  const [form, setForm] = useState({ name:"", price:"", icon:"🍽️", categoryId:"" });
+  const [dp, setDp] = useState(deliveryPerson);
+
+  useEffect(() => setDp(deliveryPerson), [deliveryPerson]);
+
+  const addCategory = () => {
+    if(!catName.trim()) return;
+    db.collection("categories").add({ name: catName.trim() });
+    setCatName("");
+    showToast("Category added.");
+  };
+  const deleteCategory = (id) => {
+    if(items.some(i => i.categoryId === id)){
+      showToast("Move or delete items in this category first.");
+      return;
+    }
+    db.collection("categories").doc(id).delete();
+  };
+  const addItem = () => {
+    if(!form.name.trim() || !form.price) { showToast("Enter item name and price."); return; }
+    db.collection("items").add({
+      name: form.name.trim(),
+      price: Number(form.price),
+      icon: form.icon || "🍽️",
+      categoryId: form.categoryId || null,
+    });
+    setForm({ name:"", price:"", icon:"🍽️", categoryId:"" });
+    showToast("Item added.");
+  };
+  const updatePrice = (id, price) => db.collection("items").doc(id).update({ price: Number(price) });
+  const deleteItem = (id) => db.collection("items").doc(id).delete();
+  const saveDeliveryPerson = () => {
+    db.collection("settings").doc("deliveryPerson").set({ name: dp.name || "", phone: (dp.phone||"").replace(/\D/g,"") });
+    showToast("Delivery contact saved.");
+  };
+
+  return (
+    <React.Fragment>
+      <div className="card" style={{marginBottom:16}}>
+        <h3 style={{marginTop:0}}>Add category</h3>
+        <div className="row gap">
+          <input type="text" placeholder="e.g. Beverages" value={catName} onChange={e => setCatName(e.target.value)} />
+          <button className="btn btn-primary btn-sm" onClick={addCategory}>Add</button>
+        </div>
+      </div>
+
+      <div className="card" style={{marginBottom:16}}>
+        <h3 style={{marginTop:0}}>Add item</h3>
+        <div className="field">
+          <label className="field-label">Name</label>
+          <input type="text" value={form.name} onChange={e => setForm({...form, name:e.target.value})} />
+        </div>
+        <div className="row gap" style={{marginBottom:14}}>
+          <div style={{flex:1}}>
+            <label className="field-label">Price (₹)</label>
+            <input type="number" value={form.price} onChange={e => setForm({...form, price:e.target.value})} />
+          </div>
+          <div style={{flex:1}}>
+            <label className="field-label">Category</label>
+            <select value={form.categoryId} onChange={e => setForm({...form, categoryId:e.target.value})}>
+              <option value="">Uncategorized</option>
+              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+        </div>
+        <label className="field-label">Icon</label>
+        <input type="text" maxLength="2" value={form.icon} onChange={e => setForm({...form, icon:e.target.value})} style={{width:60}} />
+        <div className="emoji-pick">
+          {FOOD_EMOJIS.map(e => <button key={e} onClick={() => setForm({...form, icon:e})}>{e}</button>)}
+        </div>
+        <button className="btn btn-orange" style={{marginTop:14}} onClick={addItem}>Add item</button>
+      </div>
+
+      <h3>Current menu</h3>
+      {categories.map(cat => (
+        <div key={cat.id} style={{marginBottom:14}}>
+          <div className="row between" style={{marginBottom:6}}>
+            <div className="category-title" style={{margin:0}}>{cat.name}</div>
+            <button className="btn-sm btn-danger btn" onClick={() => deleteCategory(cat.id)}>Delete</button>
+          </div>
+          {items.filter(i => i.categoryId === cat.id).map(i => (
+            <ItemEditRow key={i.id} item={i} updatePrice={updatePrice} deleteItem={deleteItem} />
+          ))}
+          {items.filter(i => i.categoryId === cat.id).length === 0 && <div className="muted">No items yet.</div>}
+        </div>
+      ))}
+      {items.filter(i => !categories.some(c => c.id === i.categoryId)).map(i => (
+        <ItemEditRow key={i.id} item={i} updatePrice={updatePrice} deleteItem={deleteItem} />
+      ))}
+
+      <div className="card" style={{marginTop:20}}>
+        <h3 style={{marginTop:0}}>Delivery contact (shown to users)</h3>
+        <div className="field">
+          <label className="field-label">Name</label>
+          <input type="text" value={dp.name||""} onChange={e => setDp({...dp, name:e.target.value})} />
+        </div>
+        <div className="field">
+          <label className="field-label">Mobile number</label>
+          <input type="tel" maxLength="10" value={dp.phone||""} onChange={e => setDp({...dp, phone:e.target.value.replace(/\D/g,"")})} />
+        </div>
+        <button className="btn btn-primary" onClick={saveDeliveryPerson}>Save</button>
+      </div>
+    </React.Fragment>
+  );
+}
+
+function ItemEditRow({ item, updatePrice, deleteItem }){
+  const [price, setPrice] = useState(item.price);
+  return (
+    <div className="item-row">
+      <div className="item-icon">{item.icon}</div>
+      <div className="item-info"><div className="item-name">{item.name}</div></div>
+      <input type="number" value={price} onChange={e => setPrice(e.target.value)} style={{width:74, padding:"7px 8px"}} />
+      <button className="btn-sm btn btn-outline" onClick={() => updatePrice(item.id, price)}>Save</button>
+      <button className="btn-sm btn btn-danger" onClick={() => deleteItem(item.id)}>✕</button>
+    </div>
+  );
+}
+
+function AdminUsers({ users, showToast }){
+  const toggleBlock = (u) => db.collection("users").doc(u.id).update({ blocked: !u.blocked });
+  const adjustDays = (u, delta) => {
+    const base = u.expiryDate ? (u.expiryDate.toDate ? u.expiryDate.toDate() : new Date(u.expiryDate)) : new Date();
+    const newDate = addDaysToDate(base, delta);
+    db.collection("users").doc(u.id).update({ expiryDate: newDate });
+    showToast((delta > 0 ? "Extended" : "Reduced") + " validity by " + Math.abs(delta) + " day(s).");
+  };
+  return (
+    users.length === 0 ? (
+      <div className="empty-state"><span className="emoji">👥</span>No registered users yet.</div>
+    ) : (
+      users.map(u => {
+        const left = daysLeft(u.expiryDate);
+        const expired = left <= 0;
+        return (
+          <div className="card" key={u.id} style={{marginBottom:12}}>
+            <div className="row between">
+              <div>
+                <div style={{fontWeight:700}}>+91 {u.phone.replace("+91","")}</div>
+                <div className="muted">Joined {fmtDate(u.createdAt)}</div>
+              </div>
+              <button className={cx("toggle", u.blocked && "on")} onClick={() => toggleBlock(u)} title="Block user"><span className="knob"></span></button>
+            </div>
+            <div className="row between" style={{marginTop:10}}>
+              <span className={cx("badge", u.blocked ? "badge-red" : expired ? "badge-red" : "badge-green")}>
+                {u.blocked ? "Blocked" : expired ? "Expired" : left + " day(s) left"}
+              </span>
+              <span className="muted">Valid till {fmtDate(u.expiryDate)}</span>
+            </div>
+            <div className="row gap" style={{marginTop:10}}>
+              <button className="btn btn-sm btn-outline" onClick={() => adjustDays(u, -7)}>−7 days</button>
+              <button className="btn btn-sm btn-outline" onClick={() => adjustDays(u, 7)}>+7 days</button>
+              <button className="btn btn-sm btn-primary" onClick={() => adjustDays(u, 30)}>+30 days</button>
+            </div>
+          </div>
+        );
+      })
+    )
+  );
+}
+
+function AdminOrders({ orders }){
+  const statuses = ["new","preparing","out","delivered"];
+  const labels = { new:"New", preparing:"Preparing", out:"Out for delivery", delivered:"Delivered" };
+  const setStatus = (id, status) => db.collection("orders").doc(id).update({ status });
+
+  return (
+    orders.length === 0 ? (
+      <div className="empty-state"><span className="emoji">📭</span>No orders yet.</div>
+    ) : (
+      orders.map(o => (
+        <div className={cx("card order-card", "status-"+o.status)} key={o.id} style={{marginBottom:14}}>
+          <div className="row between">
+            <strong>+91 {o.phone.replace("+91","")}</strong>
+            <span className="muted">{o.createdAt ? fmtDate(o.createdAt) : "Just now"}</span>
+          </div>
+          <div className="row gap" style={{marginTop:8}}>
+            <a className="btn btn-sm btn-primary" href={"tel:" + o.phone}>📞 Call customer</a>
+            {o.location && (
+              <a className="btn btn-sm btn-outline" target="_blank" rel="noreferrer"
+                href={"https://www.google.com/maps?q=" + o.location.lat + "," + o.location.lng}>📍 View location</a>
+            )}
+          </div>
+          <div className="divider"></div>
+          {o.items.map((it,idx) => (
+            <div key={idx} className="row between" style={{fontSize:14, marginBottom:4}}>
+              <span>{it.name} x {it.qty}</span><span>{rupee(it.price*it.qty)}</span>
+            </div>
+          ))}
+          <div className="divider"></div>
+          <div className="row between" style={{fontWeight:700}}><span>Total</span><span>{rupee(o.total)}</span></div>
+          <div className="status-pill">
+            {statuses.map(s => (
+              <button key={s} className={o.status===s ? "current" : ""} onClick={() => setStatus(o.id, s)}>{labels[s]}</button>
+            ))}
+          </div>
+        </div>
+      ))
+    )
+  );
+}
+
+/* =========================================================
+   ERROR BOUNDARY — shows a message instead of a blank white page
+   ========================================================= */
+class ErrorBoundary extends React.Component {
+  constructor(props){ super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error){ return { error }; }
+  componentDidCatch(error, info){ console.error("Lelo Sab Kuchh crashed:", error, info); }
+  render(){
+    if(this.state.error){
+      return (
+        <div className="shell">
+          <div className="center-screen">
+            <div style={{fontSize:44}}>⚠️</div>
+            <h2 style={{margin:"14px 0 6px"}}>Something went wrong</h2>
+            <p className="muted" style={{wordBreak:"break-word"}}>{String(this.state.error.message || this.state.error)}</p>
+            <button className="btn btn-primary" style={{marginTop:16,width:"auto",padding:"10px 24px"}}
+              onClick={() => window.location.reload()}>Reload</button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+/* =========================================================
+   ROOT APP — auth + routing
+   ========================================================= */
+function App(){
+  const [authUser, setAuthUser] = useState(undefined); // undefined = loading, null = logged out
+  const [userDoc, setUserDoc] = useState(undefined);
+  const [toastNode, showToast] = useToast();
+
+  useEffect(() => {
+    const unsub = auth.onAuthStateChanged(u => setAuthUser(u));
+    return unsub;
+  }, []);
+
+  useEffect(() => {
+    if(!authUser) { setUserDoc(null); return; }
+    if(ADMIN_NUMBERS.includes(authUser.phoneNumber)) { setUserDoc(null); return; }
+    const ref = db.collection("users").doc(authUser.phoneNumber);
+    const unsub = ref.onSnapshot(async snap => {
+      if(!snap.exists){
+        const expiry = addDaysToDate(new Date(), DEFAULT_VALIDITY_DAYS);
+        await ref.set({
+          phone: authUser.phoneNumber,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          expiryDate: expiry,
+          blocked: false,
+        });
+      } else {
+        setUserDoc(snap.data());
+      }
+    });
+    return unsub;
+  }, [authUser]);
+
+  const logout = () => auth.signOut();
+
+  let body;
+  if(authUser === undefined){
+    body = <div className="center-screen"><img src="lelo-logo.jpg" className="login-logo" alt="" /></div>;
+  } else if(authUser === null){
+    body = <LoginScreen onLoggedIn={() => {}} />;
+  } else if(ADMIN_NUMBERS.includes(authUser.phoneNumber)){
+    body = <AdminApp phone={authUser.phoneNumber.replace("+91","")} onLogout={logout} showToast={showToast} />;
+  } else if(userDoc === undefined){
+    body = <div className="center-screen"><img src="lelo-logo.jpg" className="login-logo" alt="" /></div>;
+  } else if(userDoc && userDoc.blocked){
+    body = <StatusScreen emoji="🚫" title="Account blocked" sub="Your account has been blocked. Please contact the store for help." onLogout={logout} />;
+  } else if(userDoc && daysLeft(userDoc.expiryDate) <= 0){
+    body = <StatusScreen emoji="⏳" title="Login expired" sub="Your app access has expired. Please contact the store to renew." onLogout={logout} />;
+  } else if(userDoc){
+    body = <UserApp phone={authUser.phoneNumber.replace("+91","")} userDoc={userDoc} onLogout={logout} showToast={showToast} />;
+  } else {
+    body = <div className="center-screen"><img src="lelo-logo.jpg" className="login-logo" alt="" /></div>;
+  }
+
+  return <div className="shell">{toastNode}{body}</div>;
+}
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(err => console.warn("Service worker failed:", err));
+  });
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<ErrorBoundary><App /></ErrorBoundary>);
+window.__leloMounted = true;
+</script>
+</body>
+</html>
