@@ -50,5 +50,13 @@ service cloud.firestore {
         request.resource.data.phone is string &&
         request.resource.data.phone.size() == 10;
     }
+
+    // Admin Profiles - each admin's own Name/Location, keyed by their
+    // login phone number. Any admin can read the list (e.g. to see who's
+    // who), but an admin can only create/update/delete their OWN profile.
+    match /adminProfiles/{phoneNumber} {
+      allow read: if isAdmin();
+      allow write: if isAdmin() && request.auth.token.phone_number == phoneNumber;
+    }
   }
 }
