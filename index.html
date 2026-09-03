@@ -66,8 +66,27 @@
 
   #cartSheet{ transform:translateY(100%); }
   #cartSheet.show{ transform:translateY(0); }
-  #checkoutModal, #confirmModal, #adminLogin, #productModal{ opacity:0; pointer-events:none; }
-  #checkoutModal.show, #confirmModal.show, #adminLogin.show, #productModal.show{ opacity:1; pointer-events:auto; }
+  #checkoutModal, #confirmModal, #adminLogin, #productModal, #ordersModal, #requestItemModal{ opacity:0; pointer-events:none; }
+  #checkoutModal.show, #confirmModal.show, #adminLogin.show, #productModal.show, #ordersModal.show, #requestItemModal.show{ opacity:1; pointer-events:auto; }
+
+  /* ---- request banner ---- */
+  #requestItemBanner{ box-shadow:0 1px 2px rgba(0,0,0,.03); }
+  #requestItemBanner:active{ background:var(--sage-deep); }
+
+  /* ---- status stepper ---- */
+  .step-track{ position:relative; }
+  .step-dot{ width:22px; height:22px; border-radius:9999px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:#fff; flex-shrink:0; z-index:1; }
+  .step-line{ flex:1; height:3px; background:#E1EDDD; }
+  .step-line.done{ background:var(--green); }
+  .step-dot.pending{ background:#E1EDDD; color:#8FA88F; }
+  .step-dot.active{ background:var(--orange); box-shadow:0 0 0 4px rgba(240,124,29,.18); }
+  .step-dot.done{ background:var(--green); }
+
+  /* ---- voice recording ---- */
+  .rec-pulse{ animation:rec-pulse 1s ease infinite; }
+  @keyframes rec-pulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(220,38,38,.4);} 50%{ box-shadow:0 0 0 8px rgba(220,38,38,0);} }
+
+  .attach-chip{ display:flex; align-items:center; gap:8px; background:var(--sage); border-radius:14px; padding:8px 10px; }
 </style>
 </head>
 <body class="min-h-screen">
@@ -89,24 +108,24 @@
 <header class="sticky top-0 z-30 bg-[var(--sage)]/95 backdrop-blur border-b border-black/5">
   <div class="max-w-md mx-auto px-4 pt-3 pb-2 flex items-center justify-between">
     <div class="flex items-center gap-2">
-      <img src="./icons/icon-32.png" class="w-9 h-9 rounded-xl" alt="Lelo" />
+      <img src="./icons/icon-32.png" class="w-10 h-10 rounded-xl" alt="Lelo" />
       <div class="leading-none">
-        <div class="font-head font-extrabold text-xl text-[var(--green)]">Lelo</div>
+        <div class="font-head font-extrabold text-2xl text-[var(--green)]">Lelo</div>
         <div class="text-xs text-[var(--green-dark)]/70 -mt-0.5">सब कुछ</div>
       </div>
     </div>
-    <div class="flex items-center gap-1.5">
-      <button id="profileBtn" class="tap relative bg-white border border-black/10 rounded-full w-10 h-10 flex items-center justify-center shadow-sm">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    <div class="flex items-center gap-2">
+      <button id="profileBtn" class="tap relative bg-white border border-black/10 rounded-full w-11 h-11 flex items-center justify-center shadow-sm">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         <span id="profileDot" class="hidden absolute top-0 right-0 w-2.5 h-2.5 bg-[var(--orange)] rounded-full border-2 border-white"></span>
       </button>
-      <button id="ordersBtn" class="tap relative bg-white border border-black/10 rounded-full w-10 h-10 flex items-center justify-center shadow-sm">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <button id="ordersBtn" class="tap relative bg-white border border-black/10 rounded-full w-11 h-11 flex items-center justify-center shadow-sm">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
         <span id="ordersBadge" class="hidden absolute -top-1.5 -right-1.5 bg-[var(--orange)] text-white text-[10px] font-bold w-5 h-5 rounded-full items-center justify-center border-2 border-[var(--sage)]">0</span>
       </button>
-      <button id="cartBtn" class="tap relative bg-white border border-black/10 rounded-full pl-3 pr-3.5 py-2 flex items-center gap-1.5 shadow-sm">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-        <span class="text-sm font-semibold text-[var(--green-dark)]">₹<span id="cartTotalHeader">0</span></span>
+      <button id="cartBtn" class="tap relative bg-white border border-black/10 rounded-full pl-3 pr-3.5 py-2.5 flex items-center gap-1.5 shadow-sm">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span class="text-sm font-bold text-[var(--green-dark)]">₹<span id="cartTotalHeader">0</span></span>
         <span id="cartCount" class="hidden absolute -top-1.5 -right-1.5 bg-[var(--orange)] text-white text-xs font-bold w-5 h-5 rounded-full items-center justify-center">0</span>
       </button>
     </div>
@@ -114,8 +133,8 @@
   <!-- search -->
   <div class="max-w-md mx-auto px-4 pb-2">
     <div class="relative">
-      <svg class="absolute left-3 top-1/2 -translate-y-1/2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A8B7D" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-      <input id="searchInput" placeholder="Search atta, milk, snacks..." class="w-full bg-white border border-black/10 rounded-full pl-9 pr-4 py-2 text-sm outline-none focus:border-[var(--green)]" />
+      <svg class="absolute left-3.5 top-1/2 -translate-y-1/2" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#7A8B7D" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input id="searchInput" placeholder="Search atta, milk, snacks..." class="w-full bg-white border border-black/10 rounded-full pl-10 pr-4 py-2.5 text-sm outline-none focus:border-[var(--green)] focus:ring-2 focus:ring-[var(--green)]/15" />
     </div>
   </div>
   <!-- category chips -->
@@ -124,10 +143,22 @@
 
 <!-- ============ MAIN (customer) ============ -->
 <main id="storefront" class="max-w-md mx-auto px-4 pb-32 pt-3">
+  <!-- Request an item banner: always visible, direct entry point -->
+  <button id="requestItemBanner" class="tap w-full flex items-center gap-3 bg-white border-2 border-dashed border-[var(--orange)]/50 rounded-2xl px-4 py-3 mb-4 text-left">
+    <div class="w-11 h-11 rounded-full bg-[var(--orange)]/10 flex items-center justify-center text-2xl flex-shrink-0">💬</div>
+    <div class="flex-1 min-w-0">
+      <p class="font-head font-bold text-sm text-[var(--green-dark)]">Can't find an item?</p>
+      <p class="text-xs text-[var(--ink)]/60 mt-0.5">Type, speak, or send a photo/video — we'll sort it out</p>
+    </div>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" class="flex-shrink-0"><path d="M9 18l6-6-6-6"/></svg>
+  </button>
+
   <div id="productSections"></div>
   <div id="emptyState" class="hidden text-center py-16">
-    <p class="font-head text-lg text-[var(--green-dark)]">No items found</p>
-    <p class="text-sm text-[var(--ink)]/60 mt-1">Try a different search or category</p>
+    <div class="text-5xl mb-2">🔍</div>
+    <p class="font-head font-bold text-lg text-[var(--green-dark)]">No items found</p>
+    <p class="text-sm text-[var(--ink)]/60 mt-1">Try a different search, or just ask us</p>
+    <button id="requestFromEmptyBtn" class="tap mt-4 bg-[var(--orange)] hover:bg-[var(--orange-dark)] text-white font-head font-bold text-sm px-6 py-3 rounded-full shadow-sm">Request this item</button>
   </div>
 </main>
 
@@ -208,6 +239,60 @@
   </div>
 </div>
 
+<!-- ============ MY ORDERS MODAL ============ -->
+<div id="ordersModal" class="sheet fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center">
+  <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md p-6 max-h-[85vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-1">
+      <h2 class="font-head font-bold text-lg text-[var(--green-dark)]">My Orders</h2>
+      <button id="closeOrders" class="tap text-2xl text-black/40">&times;</button>
+    </div>
+    <p class="text-xs text-[var(--ink)]/50 mb-4">Live status, updated by our team</p>
+    <div id="myOrdersList" class="space-y-4"></div>
+  </div>
+</div>
+
+<!-- ============ REQUEST AN ITEM MODAL ============ -->
+<div id="requestItemModal" class="sheet fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center">
+  <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-1">
+      <h2 class="font-head font-bold text-lg text-[var(--green-dark)]">Request an Item</h2>
+      <button id="closeRequestItem" class="tap text-2xl text-black/40">&times;</button>
+    </div>
+    <p class="text-xs text-[var(--ink)]/50 mb-4">Not on our list? Tell us what you need — type, speak, or share a photo/video.</p>
+
+    <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1">What do you need?</label>
+    <textarea id="reqMessage" rows="3" placeholder="e.g. Amul cheese slices, 2 packs" class="w-full bg-[var(--sage)] rounded-xl px-4 py-3 text-sm mb-3 outline-none resize-none"></textarea>
+
+    <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-2">Or attach one of these</label>
+    <div class="grid grid-cols-3 gap-2 mb-3">
+      <button id="reqVoiceBtn" type="button" class="tap flex flex-col items-center gap-1 bg-[var(--sage)] rounded-xl py-3 text-xs font-semibold text-[var(--green-dark)]">
+        <span id="reqVoiceIcon" class="text-xl">🎤</span><span id="reqVoiceLabel">Voice</span>
+      </button>
+      <label class="tap flex flex-col items-center gap-1 bg-[var(--sage)] rounded-xl py-3 text-xs font-semibold text-[var(--green-dark)] cursor-pointer">
+        <span class="text-xl">📷</span>Photo
+        <input id="reqPhotoInput" type="file" accept="image/*" capture="environment" class="hidden" />
+      </label>
+      <label class="tap flex flex-col items-center gap-1 bg-[var(--sage)] rounded-xl py-3 text-xs font-semibold text-[var(--green-dark)] cursor-pointer">
+        <span class="text-xl">🎥</span>Video
+        <input id="reqVideoInput" type="file" accept="video/*" capture="environment" class="hidden" />
+      </label>
+    </div>
+
+    <div id="reqAttachPreview" class="hidden mb-3"></div>
+
+    <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1 mt-1">Mobile number *</label>
+    <div class="flex items-center bg-[var(--sage)] rounded-xl mb-1 overflow-hidden">
+      <span class="pl-4 pr-2 text-sm text-[var(--ink)]/60">+91</span>
+      <input id="reqPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number" class="flex-1 bg-transparent py-3 pr-4 text-sm outline-none" />
+    </div>
+    <p id="reqPhoneError" class="hidden text-xs text-red-600 mb-2">Enter a valid 10-digit mobile number</p>
+
+    <button id="reqSendBtn" class="tap w-full bg-[var(--orange)] hover:bg-[var(--orange-dark)] text-white font-head font-bold py-3.5 rounded-2xl disabled:opacity-50 mt-2">
+      <span id="reqSendLabel">Send Request</span>
+    </button>
+  </div>
+</div>
+
 <!-- ============ PROFILE MODAL ============ -->
 <div id="profileModal" class="sheet fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center">
   <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
@@ -284,6 +369,9 @@
     </div>
     <div class="max-w-md mx-auto px-4 flex gap-1 pb-2">
       <button data-tab="orders" class="admin-tab flex-1 text-sm font-semibold py-2 rounded-lg bg-white text-[var(--green-dark)]">Orders</button>
+      <button data-tab="requests" class="admin-tab relative flex-1 text-sm font-semibold py-2 rounded-lg text-white/80">Requests
+        <span id="requestsBadge" class="hidden absolute -top-1 right-2 bg-[var(--orange)] text-white text-[10px] font-bold w-4 h-4 rounded-full items-center justify-center">0</span>
+      </button>
       <button data-tab="products" class="admin-tab flex-1 text-sm font-semibold py-2 rounded-lg text-white/80">Products</button>
       <button data-tab="categories" class="admin-tab flex-1 text-sm font-semibold py-2 rounded-lg text-white/80">Categories</button>
     </div>
@@ -291,6 +379,9 @@
 
   <!-- Orders tab -->
   <section id="tabOrders" class="max-w-md mx-auto px-4 py-4 space-y-3"></section>
+
+  <!-- Requests tab -->
+  <section id="tabRequests" class="hidden max-w-md mx-auto px-4 py-4 space-y-3"></section>
 
   <!-- Products tab -->
   <section id="tabProducts" class="hidden max-w-md mx-auto px-4 py-4">
@@ -528,8 +619,8 @@ function renderChips(){
   const wrap = document.getElementById('categoryChips');
   const all = [{id:'all', name:'All'}, ...categories];
   wrap.innerHTML = all.map(c => `
-    <button data-cat="${c.id}" class="chip tap whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold border
-      ${activeCategory===c.id ? 'bg-[var(--green)] text-white border-[var(--green)]' : 'bg-white text-[var(--green-dark)] border-black/10'}">
+    <button data-cat="${c.id}" class="chip tap whitespace-nowrap px-4 py-2.5 rounded-full text-sm font-semibold border
+      ${activeCategory===c.id ? 'bg-[var(--green)] text-white border-[var(--green)] shadow-sm' : 'bg-white text-[var(--green-dark)] border-black/10'}">
       ${c.name}
     </button>`).join('');
   wrap.querySelectorAll('[data-cat]').forEach(btn=>{
@@ -566,9 +657,9 @@ function renderProducts(){
     const items = groups[catId];
     if (!items || !items.length) return;
     const cat = categories.find(c=>c.id===catId);
-    html += `<div class="mb-5">
-      <h3 class="font-head font-bold text-base text-[var(--green-dark)] mb-2 flex items-center gap-1.5">
-        <span>${cat ? cat.emoji || '🛒' : '🛒'}</span> ${cat ? cat.name : ''}
+    html += `<div class="mb-6">
+      <h3 class="font-head font-bold text-lg text-[var(--green-dark)] mb-2.5 flex items-center gap-2">
+        <span class="text-xl">${cat ? cat.emoji || '🛒' : '🛒'}</span> ${cat ? cat.name : ''}
       </h3>
       <div class="grid grid-cols-2 gap-3">
         ${items.map(p => productCard(p)).join('')}
@@ -591,18 +682,18 @@ function productCard(p){
     ? `<img src="${p.imageUrl}" class="w-full h-28 object-cover rounded-xl bg-[var(--sage)]" />`
     : `<div class="w-full h-28 rounded-xl bg-[var(--sage-deep)] flex items-center justify-center text-4xl">${(categories.find(c=>c.id===p.categoryId)||{}).emoji || '🛒'}</div>`;
   return `
-  <div class="bg-white rounded-2xl p-3 border border-black/5 shadow-sm">
+  <div class="bg-white rounded-2xl p-3 border border-black/5 shadow-sm hover:shadow-md transition-shadow">
     ${img}
-    <p class="font-semibold text-sm mt-2.5 leading-tight line-clamp-2 min-h-[2.5em]">${p.name}</p>
+    <p class="font-semibold text-[15px] mt-2.5 leading-snug line-clamp-2 min-h-[2.6em]">${p.name}</p>
     <p class="text-xs text-[var(--ink)]/50 mb-2.5">${p.unit || ''}</p>
     <div class="flex items-center justify-between">
-      <span class="font-head font-bold text-[var(--green-dark)] text-base">₹${p.price}</span>
+      <span class="font-head font-bold text-[var(--green-dark)] text-lg">₹${p.price}</span>
       ${qty === 0
-        ? `<button data-add="${p.id}" class="tap bg-[var(--orange)] text-white text-xs font-bold px-4 py-2 rounded-full shadow-sm shadow-orange-900/10">ADD</button>`
-        : `<div class="flex items-center gap-2.5 bg-[var(--green)] rounded-full px-1.5 py-0.5 shadow-sm">
-             <button data-minus="${p.id}" class="tap text-white w-6 h-6 text-lg font-bold leading-none">−</button>
+        ? `<button data-add="${p.id}" class="tap bg-[var(--orange)] text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-sm shadow-orange-900/10">ADD</button>`
+        : `<div class="flex items-center gap-2.5 bg-[var(--green)] rounded-full px-1.5 py-1 shadow-sm">
+             <button data-minus="${p.id}" class="tap text-white w-7 h-7 text-lg font-bold leading-none">−</button>
              <span class="text-white text-sm font-bold w-4 text-center">${qty}</span>
-             <button data-add="${p.id}" class="tap text-white w-6 h-6 text-lg font-bold leading-none">+</button>
+             <button data-add="${p.id}" class="tap text-white w-7 h-7 text-lg font-bold leading-none">+</button>
            </div>`
       }
     </div>
@@ -789,6 +880,7 @@ document.getElementById('confirmOrderBtn').addEventListener('click', async ()=>{
       altPhone: existingProfile.altPhone || ''
     });
     renderProfileDot();
+    saveMyOrderId(ref.id);
 
     cart = {}; saveCart(); renderProducts(); renderCartUI();
     document.getElementById('custName').value = '';
@@ -810,6 +902,270 @@ document.getElementById('confirmOrderBtn').addEventListener('click', async ()=>{
 
 document.getElementById('confirmDoneBtn').addEventListener('click', ()=>{
   document.getElementById('confirmModal').classList.remove('show');
+});
+
+/* =========================================================
+   MY ORDERS (customer) — tracked locally on this device,
+   live status pulled straight from Firestore
+   ========================================================= */
+const CUST_STATUS_FLOW = ['new','confirmed','out_for_delivery','delivered'];
+const CUST_STATUS_LABEL = { new:'Order placed', confirmed:'Confirmed', out_for_delivery:'Out for delivery', delivered:'Delivered', cancelled:'Cancelled' };
+
+let myOrders = {};      // id -> order data
+let myOrdersUnsubs = [];
+
+function myOrderIds(){
+  try { return JSON.parse(localStorage.getItem('lelo_my_orders') || '[]'); }
+  catch(e){ return []; }
+}
+function saveMyOrderId(id){
+  let ids = myOrderIds();
+  ids = [id, ...ids.filter(x=>x!==id)].slice(0, 20);
+  localStorage.setItem('lelo_my_orders', JSON.stringify(ids));
+}
+
+function chunk(arr, size){
+  const out = [];
+  for (let i=0; i<arr.length; i+=size) out.push(arr.slice(i, i+size));
+  return out;
+}
+
+function initMyOrders(){
+  myOrdersUnsubs.forEach(u=>u());
+  myOrdersUnsubs = [];
+  myOrders = {};
+  const ids = myOrderIds();
+  if (ids.length === 0) { renderOrdersBadge(); renderMyOrdersList(); return; }
+  chunk(ids, 10).forEach(group=>{
+    const unsub = db.collection('orders')
+      .where(firebase.firestore.FieldPath.documentId(), 'in', group)
+      .onSnapshot(snap=>{
+        snap.docs.forEach(d=>{ myOrders[d.id] = { id:d.id, ...d.data() }; });
+        renderOrdersBadge();
+        renderMyOrdersList();
+      }, err=> console.error('myOrders', err));
+    myOrdersUnsubs.push(unsub);
+  });
+}
+
+function sortedMyOrders(){
+  const ids = myOrderIds();
+  return ids.map(id=>myOrders[id]).filter(Boolean);
+}
+
+function renderOrdersBadge(){
+  const active = sortedMyOrders().filter(o=> o.status !== 'delivered' && o.status !== 'cancelled').length;
+  const badge = document.getElementById('ordersBadge');
+  if (active > 0) { badge.classList.remove('hidden'); badge.classList.add('flex'); badge.textContent = active; }
+  else { badge.classList.add('hidden'); badge.classList.remove('flex'); }
+}
+
+function orderStepper(status){
+  if (status === 'cancelled') {
+    return `<div class="flex items-center gap-2 text-xs font-semibold text-gray-500"><span class="w-2.5 h-2.5 rounded-full bg-gray-400"></span> Order cancelled</div>`;
+  }
+  const idx = CUST_STATUS_FLOW.indexOf(status);
+  return `<div class="step-track flex items-center">
+    ${CUST_STATUS_FLOW.map((s,i)=>{
+      const state = i < idx ? 'done' : (i === idx ? 'active' : 'pending');
+      const dot = `<div class="step-dot ${state}">${state==='done' ? '✓' : ''}</div>`;
+      const line = i < CUST_STATUS_FLOW.length-1 ? `<div class="step-line ${i < idx ? 'done' : ''}"></div>` : '';
+      return dot + line;
+    }).join('')}
+  </div>
+  <div class="flex justify-between mt-1.5">
+    ${CUST_STATUS_FLOW.map((s,i)=>`<span class="text-[10px] font-semibold ${i<=idx?'text-[var(--green-dark)]':'text-[var(--ink)]/35'}" style="width:${100/CUST_STATUS_FLOW.length}%;text-align:center;">${CUST_STATUS_LABEL[s]}</span>`).join('')}
+  </div>`;
+}
+
+function renderMyOrdersList(){
+  const wrap = document.getElementById('myOrdersList');
+  if (!wrap) return;
+  const orders = sortedMyOrders();
+  if (orders.length === 0) {
+    wrap.innerHTML = `<div class="text-center py-10">
+      <div class="text-4xl mb-2">🧾</div>
+      <p class="text-sm text-[var(--ink)]/50">No orders yet</p>
+    </div>`;
+    return;
+  }
+  wrap.innerHTML = orders.map(o=>{
+    const time = o.createdAt && o.createdAt.toDate ? o.createdAt.toDate().toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : 'Just now';
+    return `<div class="bg-[var(--sage)] rounded-2xl p-4">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-bold text-[var(--ink)]/50">#${o.id.slice(-6).toUpperCase()} · ${time}</span>
+        <span class="font-head font-bold text-sm text-[var(--green-dark)]">₹${o.subtotal}</span>
+      </div>
+      ${orderStepper(o.status)}
+      <div class="mt-3 pt-3 border-t border-black/5 space-y-0.5">
+        ${(o.items||[]).map(it=>`<p class="text-xs text-[var(--ink)]/70">${it.qty} × ${it.name}</p>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openOrdersModal(){
+  renderMyOrdersList();
+  document.getElementById('ordersModal').classList.add('show');
+}
+function closeOrdersModal(){
+  document.getElementById('ordersModal').classList.remove('show');
+}
+document.getElementById('ordersBtn').addEventListener('click', openOrdersModal);
+document.getElementById('closeOrders').addEventListener('click', closeOrdersModal);
+
+/* =========================================================
+   REQUEST AN ITEM (customer) — text, voice, photo or video
+   ========================================================= */
+let reqMediaRecorder = null;
+let reqAudioChunks = [];
+let reqAudioBlob = null;
+let reqPhotoFile = null;
+let reqVideoFile = null;
+let reqRecording = false;
+
+function clearReqAttachments(){
+  reqAudioBlob = null; reqPhotoFile = null; reqVideoFile = null;
+  document.getElementById('reqPhotoInput').value = '';
+  document.getElementById('reqVideoInput').value = '';
+  renderReqAttachPreview();
+}
+
+function renderReqAttachPreview(){
+  const wrap = document.getElementById('reqAttachPreview');
+  let html = '';
+  if (reqAudioBlob) {
+    html = `<div class="attach-chip"><span class="text-lg">🎤</span><audio controls class="flex-1 h-9" src="${URL.createObjectURL(reqAudioBlob)}"></audio><button type="button" id="reqRemoveAttach" class="tap text-red-600 text-lg leading-none px-1">&times;</button></div>`;
+  } else if (reqPhotoFile) {
+    html = `<div class="attach-chip"><img src="${URL.createObjectURL(reqPhotoFile)}" class="w-10 h-10 rounded-lg object-cover" /><span class="flex-1 text-xs text-[var(--ink)]/70 truncate">${reqPhotoFile.name}</span><button type="button" id="reqRemoveAttach" class="tap text-red-600 text-lg leading-none px-1">&times;</button></div>`;
+  } else if (reqVideoFile) {
+    html = `<div class="attach-chip"><span class="text-lg">🎥</span><span class="flex-1 text-xs text-[var(--ink)]/70 truncate">${reqVideoFile.name}</span><button type="button" id="reqRemoveAttach" class="tap text-red-600 text-lg leading-none px-1">&times;</button></div>`;
+  }
+  wrap.innerHTML = html;
+  wrap.classList.toggle('hidden', !html);
+  const rm = document.getElementById('reqRemoveAttach');
+  if (rm) rm.addEventListener('click', clearReqAttachments);
+}
+
+document.getElementById('reqVoiceBtn').addEventListener('click', async ()=>{
+  if (reqRecording) {
+    reqMediaRecorder.stop();
+    return;
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    toast('Voice recording is not supported on this device', 'error');
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    reqAudioChunks = [];
+    reqMediaRecorder = new MediaRecorder(stream);
+    reqMediaRecorder.ondataavailable = e => reqAudioChunks.push(e.data);
+    reqMediaRecorder.onstop = ()=>{
+      reqAudioBlob = new Blob(reqAudioChunks, { type: 'audio/webm' });
+      reqPhotoFile = null; reqVideoFile = null;
+      document.getElementById('reqPhotoInput').value = '';
+      document.getElementById('reqVideoInput').value = '';
+      renderReqAttachPreview();
+      stream.getTracks().forEach(t=>t.stop());
+      reqRecording = false;
+      document.getElementById('reqVoiceIcon').textContent = '🎤';
+      document.getElementById('reqVoiceLabel').textContent = 'Voice';
+      document.getElementById('reqVoiceBtn').classList.remove('rec-pulse','bg-red-100');
+    };
+    reqMediaRecorder.start();
+    reqRecording = true;
+    document.getElementById('reqVoiceIcon').textContent = '⏺';
+    document.getElementById('reqVoiceLabel').textContent = 'Stop';
+    document.getElementById('reqVoiceBtn').classList.add('rec-pulse','bg-red-100');
+  } catch (err) {
+    toast('Microphone permission denied', 'error');
+  }
+});
+
+document.getElementById('reqPhotoInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if (!file) return;
+  reqPhotoFile = file; reqVideoFile = null; reqAudioBlob = null;
+  document.getElementById('reqVideoInput').value = '';
+  renderReqAttachPreview();
+});
+document.getElementById('reqVideoInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 25*1024*1024) { toast('Video must be under 25MB', 'error'); e.target.value=''; return; }
+  reqVideoFile = file; reqPhotoFile = null; reqAudioBlob = null;
+  document.getElementById('reqPhotoInput').value = '';
+  renderReqAttachPreview();
+});
+
+function openRequestModal(prefill){
+  document.getElementById('reqMessage').value = prefill || '';
+  clearReqAttachments();
+  const p = loadProfile();
+  document.getElementById('reqPhone').value = p.phone || '';
+  document.getElementById('reqPhoneError').classList.add('hidden');
+  document.getElementById('requestItemModal').classList.add('show');
+}
+function closeRequestModal(){
+  if (reqRecording && reqMediaRecorder) reqMediaRecorder.stop();
+  document.getElementById('requestItemModal').classList.remove('show');
+}
+document.getElementById('requestItemBanner').addEventListener('click', ()=> openRequestModal(''));
+document.getElementById('requestFromEmptyBtn').addEventListener('click', ()=> openRequestModal(searchTerm.trim()));
+document.getElementById('closeRequestItem').addEventListener('click', closeRequestModal);
+
+document.getElementById('reqPhone').addEventListener('input', (e)=>{
+  e.target.value = e.target.value.replace(/\D/g,'').slice(0,10);
+});
+
+async function uploadRequestMedia(fileOrBlob, folder, ext){
+  const ref = storage.ref().child(`item-requests/${folder}_${Date.now()}.${ext}`);
+  await withTimeout(ref.put(fileOrBlob), 30000, 'Uploading attachment');
+  return withTimeout(ref.getDownloadURL(), 10000, 'Fetching attachment URL');
+}
+
+document.getElementById('reqSendBtn').addEventListener('click', async ()=>{
+  const message = document.getElementById('reqMessage').value.trim();
+  const phone = document.getElementById('reqPhone').value.trim();
+  const phoneError = document.getElementById('reqPhoneError');
+
+  if (phone.length !== 10) { phoneError.classList.remove('hidden'); return; }
+  phoneError.classList.add('hidden');
+
+  if (!message && !reqAudioBlob && !reqPhotoFile && !reqVideoFile) {
+    toast('Please describe the item, or attach a voice note, photo or video', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('reqSendBtn');
+  const label = document.getElementById('reqSendLabel');
+  btn.disabled = true; label.textContent = 'Sending...';
+
+  try {
+    const p = loadProfile();
+    const reqDoc = {
+      message: message || null,
+      phone,
+      customerName: p.name || null,
+      status: 'new',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (reqAudioBlob) reqDoc.audioUrl = await uploadRequestMedia(reqAudioBlob, 'voice', 'webm');
+    if (reqPhotoFile) reqDoc.imageUrl = await uploadRequestMedia(reqPhotoFile, 'photo', 'jpg');
+    if (reqVideoFile) reqDoc.videoUrl = await uploadRequestMedia(reqVideoFile, 'video', 'mp4');
+
+    await withTimeout(db.collection('itemRequests').add(reqDoc), 12000, 'Sending request');
+
+    if (!p.phone) { saveProfileToStorage({ ...p, phone }); renderProfileDot(); }
+
+    closeRequestModal();
+    toast('Request sent! We\'ll get back to you shortly.');
+  } catch (err) {
+    toast(err.message || 'Could not send request. Please try again.', 'error');
+  } finally {
+    btn.disabled = false; label.textContent = 'Send Request';
+  }
 });
 
 /* =========================================================
@@ -945,6 +1301,7 @@ document.getElementById('verifyOtpBtn').addEventListener('click', async ()=>{
 
 document.getElementById('adminLogoutBtn').addEventListener('click', async ()=>{
   if (ordersUnsub) { ordersUnsub(); ordersUnsub = null; }
+  if (requestsUnsub) { requestsUnsub(); requestsUnsub = null; }
   await auth.signOut();
   window.location.hash = '';
   showStorefront();
@@ -959,8 +1316,10 @@ auth.onAuthStateChanged(user=>{
     hideAdminLogin();
     showAdminDash();
     subscribeOrders();
+    subscribeItemRequests();
   } else {
     if (ordersUnsub) { ordersUnsub(); ordersUnsub = null; }
+    if (requestsUnsub) { requestsUnsub(); requestsUnsub = null; }
     if (window.location.hash === '#admin') showAdminLogin();
   }
 });
@@ -976,7 +1335,7 @@ document.querySelectorAll('.admin-tab').forEach(btn=>{
     });
     btn.classList.add('bg-white','text-[var(--green-dark)]');
     btn.classList.remove('text-white/80');
-    ['orders','products','categories'].forEach(t=>{
+    ['orders','requests','products','categories'].forEach(t=>{
       document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('hidden', t !== btn.dataset.tab);
     });
   });
@@ -1062,6 +1421,56 @@ async function updateOrderStatus(id, status){
   try {
     await withTimeout(db.collection('orders').doc(id).update({ status, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() }), 10000, 'Updating order');
   } catch (err) { toast(err.message, 'error'); }
+}
+
+/* =========================================================
+   ADMIN: LIVE ITEM REQUESTS
+   ========================================================= */
+let requestsUnsub = null;
+
+function subscribeItemRequests(){
+  if (requestsUnsub) return;
+  requestsUnsub = db.collection('itemRequests').orderBy('createdAt','desc').limit(100)
+    .onSnapshot(snap=>{
+      const reqs = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+      renderItemRequests(reqs);
+      const openCount = reqs.filter(r=>r.status!=='done').length;
+      const badge = document.getElementById('requestsBadge');
+      if (openCount > 0) { badge.classList.remove('hidden'); badge.classList.add('flex'); badge.textContent = openCount; }
+      else { badge.classList.add('hidden'); badge.classList.remove('flex'); }
+    }, err=> console.error('itemRequests', err));
+}
+
+function renderItemRequests(reqs){
+  const wrap = document.getElementById('tabRequests');
+  if (reqs.length === 0) {
+    wrap.innerHTML = `<p class="text-center text-sm text-[var(--ink)]/50 py-10">No item requests yet</p>`;
+    return;
+  }
+  wrap.innerHTML = reqs.map(r=>{
+    const time = r.createdAt && r.createdAt.toDate ? r.createdAt.toDate().toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : 'Just now';
+    return `<div class="bg-white rounded-2xl p-4 border border-black/5">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold text-[var(--ink)]/40">#${r.id.slice(-6).toUpperCase()} · ${time}</span>
+        <span class="text-xs font-bold text-white px-2 py-1 rounded-full ${r.status==='done' ? 'bg-[var(--green)]' : 'bg-[var(--orange)]'}">${r.status==='done' ? 'Done' : 'New'}</span>
+      </div>
+      <p class="text-sm font-semibold">${r.customerName || 'Customer'} · <a href="tel:+91${r.phone}" class="text-[var(--green-dark)] underline">+91 ${r.phone}</a></p>
+      ${r.message ? `<p class="text-sm text-[var(--ink)]/70 mt-1">${r.message}</p>` : ''}
+      ${r.imageUrl ? `<img src="${r.imageUrl}" class="w-full max-h-48 object-cover rounded-xl mt-2" />` : ''}
+      ${r.videoUrl ? `<video src="${r.videoUrl}" controls class="w-full max-h-48 rounded-xl mt-2"></video>` : ''}
+      ${r.audioUrl ? `<audio src="${r.audioUrl}" controls class="w-full mt-2"></audio>` : ''}
+      <div class="flex items-center justify-end mt-2 pt-2 border-t border-black/5">
+        ${r.status !== 'done' ? `<button data-done="${r.id}" class="tap text-xs font-semibold bg-[var(--green)] text-white px-3 py-1.5 rounded-full">Mark Done</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+
+  wrap.querySelectorAll('[data-done]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      try { await db.collection('itemRequests').doc(btn.dataset.done).update({ status:'done' }); }
+      catch(err){ toast(err.message, 'error'); }
+    });
+  });
 }
 
 /* =========================================================
@@ -1370,6 +1779,7 @@ async function seedSampleData(){
 subscribeCatalog();
 renderCartUI();
 renderProfileDot();
+initMyOrders();
 routeHash();
 </script>
 </body>
