@@ -1,80 +1,143 @@
-# Lelo Sab Kuchh — Setup Guide
+# Lelo — Setup & Deployment Guide
 
-This is a working web-app prototype (single file: `index.html`) wired to your
-Firebase project `lelovkstech2026`. It's built with React + Firebase loaded
-from CDNs, so there's nothing to compile — just host the three files together.
+Files in this package:
 
-**Files — upload all of these together to the same folder on your host (e.g. the root of `lelo.vkstech.com`):**
-- `index.html` — **landing page** with the "Download the App" button (what people see first at lelo.vkstech.com)
-- `app.html` — the actual app: login, user ordering flow, admin console
-- `manifest.json` — makes the site installable as an app (name, icons, colors)
-- `sw.js` — service worker; caches the app shell so it installs and loads fast
-- `icon-192.png`, `icon-512.png` — app icons generated from your logo
-- `lelo-logo.jpg` — your logo, used in-app
-- `firestore.rules` — recommended security rules for your Firestore database
-
-## 0. Why there was a blank white page
-The previous single-file version created the invisible reCAPTCHA the moment the page loaded. If Phone Auth wasn't enabled yet, or the domain wasn't in Firebase's authorized-domains list, that throw happened before anything was drawn — with no error screen, the whole page just stayed blank. This version:
-- only creates the reCAPTCHA when someone taps **Send OTP** (wrapped in a try/catch that shows a plain-English message instead of failing silently)
-- shows a "Loading Lelo Sab Kuchh…" screen immediately, so you always see *something*
-- catches any other runtime error and shows a "Something went wrong" screen with a Reload button, instead of a blank page
-
-If you still see a blank page after this, it almost always means step 1 or step 2 below hasn't been done yet for your live domain — check the browser console (or use the on-screen error message this version now shows).
-
-## 1. Turn on Phone Authentication
-Firebase Console → **Build → Authentication → Sign-in method → Phone → Enable**.
-- Phone sign-in needs the **Blaze (pay-as-you-go)** billing plan once you go past the free testing quota. On the free Spark plan you can add a few **test phone numbers** (Authentication → Sign-in method → Phone → Phone numbers for testing) to try the app without sending real SMS.
-- Add your two admin numbers as test numbers first, so you can log into the admin console for free while building.
-
-## 2. Turn on Firestore
-Firebase Console → **Build → Firestore Database → Create database** (production mode is fine).
-Then go to the **Rules** tab and paste in the contents of `firestore.rules` from this folder, and click **Publish**.
-
-## 3. Host the files
-Any static host works (Firebase Hosting is the easiest since it's the same project):
 ```
-npm install -g firebase-tools
-firebase login
-firebase init hosting   # pick project lelovkstech2026, public dir = the folder with index.html
-firebase deploy
+index.html          the entire app (storefront + cart + checkout + admin dashboard)
+manifest.json        PWA manifest (install button, icons, name)
+sw.js                 service worker (offline caching, installability)
+firestore.rules       copy-paste into Firebase Console
+storage.rules          copy-paste into Firebase Console
+icons/                 app icons generated from your logo
 ```
-Firebase Hosting also auto-adds your domain to the **Authorized domains** list that Phone Auth requires. If you host elsewhere, add that domain manually in Authentication → Settings → Authorized domains.
 
-## 4. How the app is organized
-- **Login:** mobile number → OTP (Firebase Phone Auth) → account created automatically on first login with **180 days** validity.
-- **Admin numbers** `7497073993` and `8929394920` skip the regular user flow and land on the **Admin console** instead.
-- **User app** (bottom tabs): Menu (grouped by category, add to cart), Cart (adjust quantities, Confirm order — this also grabs the phone's GPS location with permission), My Orders (live status), Delivery (call/WhatsApp the delivery contact the admin has set).
-- **Admin console** (top tabs):
-  - **Items** — add categories, add items (name, price, emoji icon, category), edit price or delete any item, and set the delivery person's name/number shown to users.
-  - **Users** — every registered user, with join date, days remaining, a block toggle, and ±7/+30 day buttons to adjust their validity.
-  - **Orders** — live order feed (badge shows how many are new), each with items, total, a tap-to-call link, a "View location" map link, and buttons to move the order through New → Preparing → Out for delivery → Delivered.
+Upload all of these to the **root** of your `lelo` GitHub repo, keeping the
+`icons/` folder as a folder (don't flatten it).
 
-## 5. About notifications to the admin
-While the admin console is **open in a browser tab**, new orders appear instantly (Firestore real-time listener) and trigger a toast + a browser notification. That's included and working out of the box.
+---
 
-Getting a notification when the admin's **app/phone is closed** needs a real push channel: Firebase Cloud Messaging (FCM) plus a small Cloud Function that fires on every new `orders` document. That's a separate, small build (mainly server-side) — happy to add it next if you want true background push to the admin's phone; it isn't something a static web page can do on its own.
+## ⚠️ Before anything else: enable Blaze billing
 
-## 6. The "Download the App" landing page
-`lelo.vkstech.com` now serves `index.html` first — a landing page with a **Download the App** button.
-- On Android/Chrome/Edge, tapping it triggers the real "Install app" prompt (via `manifest.json` + `sw.js`), and afterwards the person is dropped into `app.html` running as a standalone app icon on their home screen.
-- On iPhone (Safari doesn't support that install prompt), tapping the button shows a short instruction to use Share → "Add to Home Screen" instead.
-- "Continue in browser instead" skips installation and goes straight to `app.html`.
-- **This must be served over HTTPS** (Firebase Hosting gives you this automatically) — install prompts don't work on plain HTTP.
+Your admin OTP login uses **Firebase Phone Authentication**, and product
+photo uploads use **Firebase Storage**. As of 2026, Google requires both of
+these to run on the **Blaze (pay-as-you-go) plan** — a free Spark project
+cannot use them at all, even at zero volume. You must attach a billing
+card to the `lelo-sab-kuchh` project.
 
-## 8. Fixing the "shortcut with a Chrome badge" icon
-If the icon on your home screen looks like your logo with a small Chrome badge in the corner, that's a plain **browser shortcut/bookmark**, not a real installed app — Chrome only drops that badge when it wasn't confident the site was a proper installable app at the moment it was added (manifest/service worker not ready yet, or an older cached version was used).
+This does **not** mean you'll be charged in normal use:
+- The first 10 SMS/day for phone auth are free; beyond that it's roughly ₹0.5–1 per OTP (only admin logs in, so this will basically never be hit).
+- Storage has a generous always-free quota (5 GB stored, 100 GB/month downloaded in eligible regions).
 
-To fix it:
-1. **Delete** that shortcut from your home screen.
-2. In Chrome, open `https://lelo.vkstech.com`, tap the **⋮ menu → "Clear cache and reload"** (or clear site data for the domain) so it fetches the latest `manifest.json`, `sw.js`, and icons — not an old cached copy.
-3. Confirm the padlock/HTTPS is present — installable PWAs require HTTPS.
-4. Tap **Download the App** again. If Chrome recognizes it as installable, you'll see a genuine **"Install app"** dialog (with an Install/Cancel choice) rather than just adding a shortcut. That result has no browser badge and opens full-screen without an address bar.
+**To enable:** Firebase Console → gear icon → **Usage and billing** → **Modify plan** → select **Blaze** → attach a card.
 
-You can also check installability yourself any time: open the site in Chrome, go to **⋮ → More tools → Developer tools → Application tab → Manifest**, and see if Chrome lists any errors — that will tell you exactly what's blocking a proper install if it still doesn't work.
+---
 
-## 9. Fixing "the app just shows Loading… forever"
-`app.html` now has a watchdog: if the app hasn't finished starting within 8 seconds, the loading screen is replaced with an actual error message (instead of hanging silently), which will point to what failed — usually a blocked script (ad-blocker, restrictive mobile network/firewall) or no internet connection at that moment. If you see that message, share the red error text and I can pin down the exact fix.
+## Step 1 — Create the Firebase Web App & get your config
 
-## 10. Suggested next steps
-- Add your real item photos instead of emoji icons if you'd like (swap `item.icon` for an image URL field).
-- If you eventually want a real Android/iOS app (not just an installable web page), the same Firebase project can back a React Native or Flutter app — the data model here (`categories`, `items`, `users`, `orders`, `settings`) would carry over directly.
+1. Go to the [Firebase Console](https://console.firebase.google.com) → open **lelo-sab-kuchh**.
+2. Click the **gear icon → Project settings**.
+3. Under "Your apps", click the **`</>`** (Web) icon to register a new web app. Name it `Lelo Web`.
+4. Firebase will show you a `firebaseConfig` object. Copy it.
+5. Open `index.html` in this package, find this block near the top of the `<script>` section, and paste your real values in:
+
+```js
+const firebaseConfig = {
+  apiKey: "PASTE_YOUR_API_KEY",
+  authDomain: "lelo-sab-kuchh.firebaseapp.com",
+  projectId: "lelo-sab-kuchh",
+  storageBucket: "lelo-sab-kuchh.appspot.com",
+  messagingSenderId: "PASTE_SENDER_ID",
+  appId: "PASTE_APP_ID"
+};
+```
+
+---
+
+## Step 2 — Enable Authentication (Phone)
+
+1. Firebase Console → **Build → Authentication → Get started**.
+2. Under **Sign-in method**, enable **Phone**.
+3. Go to **Authentication → Settings → Authorized domains** and add:
+   - `lelo.vkstech.com`
+   - your GitHub Pages default domain if you also test there (e.g. `yourusername.github.io`)
+   - `localhost` (already there by default — for local testing)
+
+No need to add the admin number as a "test number" — since you want real
+OTPs, it'll just receive a genuine SMS.
+
+---
+
+## Step 3 — Enable Firestore
+
+1. **Build → Firestore Database → Create database**.
+2. Choose **Production mode**.
+3. Pick a location close to your users (e.g. `asia-south1` — Mumbai).
+4. Once created, go to the **Rules** tab, delete the default contents, and paste in everything from `firestore.rules` in this package. Click **Publish**.
+
+## Step 4 — Enable Storage
+
+1. **Build → Storage → Get started**. Choose **Production mode**, region **asia-south1**.
+2. Go to the **Rules** tab, delete the defaults, paste in `storage.rules`, click **Publish**.
+
+---
+
+## Step 5 — Upload files to GitHub
+
+Push/upload these files to the root of your `lelo` repo:
+`index.html`, `manifest.json`, `sw.js`, `icons/*`
+
+### If using GitHub Pages (matches your `lelo.vkstech.com` domain):
+1. Repo → **Settings → Pages**.
+2. Source: **Deploy from branch**, branch `main`, folder `/ (root)`.
+3. Under **Custom domain**, enter `lelo.vkstech.com` and save — this creates a `CNAME` file in your repo automatically. Make sure your DNS has a `CNAME` record for `lelo` pointing to `<yourusername>.github.io`.
+4. Wait a few minutes for the SSL certificate to provision.
+
+### About Vercel
+You mentioned Vercel is also connected to the same repo — that's fine, but
+**pick one as your live domain** to avoid confusion, since both will
+auto-deploy from the same `main` branch. Since `lelo.vkstech.com` already
+points at GitHub Pages, I'd disconnect/ignore the Vercel deployment (or use
+it purely as a staging preview) unless you'd rather move the custom domain
+to Vercel instead — either works technically, just not both at once for the
+same domain.
+
+---
+
+## Step 6 — Test it
+
+1. Visit `https://lelo.vkstech.com`. You should see the **Install** banner
+   pop in from the top within a second or two (on Chrome/Edge/Android;
+   iOS Safari doesn't support `beforeinstallprompt` — there it's "Share →
+   Add to Home Screen", which works automatically since the manifest is linked).
+2. As a customer: browse, add items to cart, place an order — you'll be
+   asked to share location and a phone number (no OTP, no login).
+3. As admin: scroll down and tap **Admin login**, or go to
+   `https://lelo.vkstech.com/#admin`. Enter `8929394920`, get the real
+   OTP by SMS, log in.
+4. In the admin dashboard, go to the **Categories** tab and tap
+   **🌱 Seed sample categories & products** once — this populates
+   Vegetables, Fruits, Dairy, Atta/Rice/Dal, Snacks, and Beverages with a
+   few sample items so the store isn't empty. Edit/replace freely after.
+5. Place a test order from another browser/incognito tab while the admin
+   dashboard is open — you should hear a beep, see a toast, and the order
+   should flash and appear at the top of the **Orders** tab in real time.
+
+Note on the notification: this is a **live, in-app alert** — it only fires
+while the admin has the dashboard open in a browser tab (as you chose,
+this needs no paid Cloud Functions). If you later want true push
+notifications when the admin's phone is locked/app closed, that requires
+upgrading to Firebase Cloud Messaging + a Cloud Function — happy to add
+that later if you need it.
+
+---
+
+## Ongoing maintenance
+
+- **Every time you redeploy `index.html` or `sw.js`**, bump `CACHE_NAME` in
+  `sw.js` (e.g. `lelo-v1` → `lelo-v2`), or returning visitors will keep
+  seeing the old cached version.
+- **Adding more admins**: edit the `ADMIN_PHONES` array near the top of
+  `index.html`'s script, *and* update the phone number list inside
+  `firestore.rules` / `storage.rules` (both the `isAdmin()` function and
+  the storage rule) to match, then re-publish the rules in the Firebase
+  Console.

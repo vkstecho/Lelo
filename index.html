@@ -2,1081 +2,1143 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<script>
-  // Force HTTPS. Over plain HTTP, some mobile carriers inject their own
-  // scripts into the page — which is what causes errors like "Cannot use
-  // import statement outside a module" that have nothing to do with this
-  // app's own code. HTTPS also blocks that kind of injection entirely.
-  if(location.protocol === "http:" && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)){
-    location.replace("https://" + location.host + location.pathname + location.search);
-  }
-</script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-<title>Lelo Sab Kuchh &mdash; Food &amp; Grocery Delivery</title>
-<link rel="icon" href="lelo-logo.jpg" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Lelo - सब कुछ</title>
+<meta name="description" content="Groceries and food, delivered. Order everything in one place." />
+<meta name="theme-color" content="#2E6F3F" />
+<link rel="manifest" href="./manifest.json" />
+<link rel="icon" href="./icons/icon-32.png" />
+<link rel="apple-touch-icon" href="./icons/icon-180.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Lelo" />
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Firebase (compat SDKs) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-storage-compat.js"></script>
 
 <style>
   :root{
-    --green:#1F6E3D;
-    --green-dark:#154D2A;
-    --orange:#F4791E;
-    --orange-dark:#D8630F;
-    --cream:#FFF8EE;
-    --card:#FFFFFF;
-    --ink:#2B2620;
-    --ink-soft:#786F62;
-    --line:#EDE3D2;
-    --red:#C0392B;
-    --radius:16px;
+    --green:#2E6F3F;
+    --green-dark:#1F4E2C;
+    --orange:#F07C1D;
+    --orange-dark:#D3660D;
+    --sage:#EFF5EC;
+    --sage-deep:#E1EDDD;
+    --ink:#1F2A22;
+    --paper:#FFFFFF;
   }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:var(--cream);
-    color:var(--ink);
-    font-family:'Inter',sans-serif;
-    -webkit-font-smoothing:antialiased;
-  }
-  h1,h2,h3,.brand{ font-family:'Baloo 2',sans-serif; }
-  #root{ min-height:100vh; display:flex; justify-content:center; }
-  .shell{
-    width:100%;
-    max-width:480px;
-    min-height:100vh;
-    background:var(--cream);
-    display:flex;
-    flex-direction:column;
-    position:relative;
-  }
+  html,body{ background:var(--sage); color:var(--ink); font-family:'Inter',sans-serif; }
+  .font-head{ font-family:'Baloo 2',sans-serif; }
+  ::-webkit-scrollbar{ display:none; }
+  * { scrollbar-width:none; }
 
-  /* ---------- Top bar ---------- */
-  .topbar{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:14px 18px;
-    background:var(--card);
-    border-bottom:1px solid var(--line);
-    position:sticky;
-    top:0;
-    z-index:20;
-  }
-  .topbar img{ width:38px; height:38px; object-fit:contain; border-radius:9px; }
-  .topbar .brand{ font-size:20px; font-weight:700; color:var(--green); line-height:1; }
-  .topbar .brand span{ color:var(--orange); }
-  .topbar .tag{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
-  .topbar .spacer{ flex:1; }
-  .icon-btn{
-    background:none; border:none; cursor:pointer; color:var(--ink-soft);
-    font-size:13px; font-weight:600; padding:6px 10px; border-radius:10px;
-  }
-  .icon-btn:hover{ background:var(--cream); }
+  .swoosh-check{ stroke:var(--orange); stroke-width:14; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .swoosh-anim{ stroke-dasharray:220; stroke-dashoffset:220; animation:draw 0.7s ease forwards; }
+  @keyframes draw{ to{ stroke-dashoffset:0; } }
 
-  /* ---------- Generic ---------- */
-  .screen{ flex:1; padding:18px; padding-bottom:90px; }
-  .center-screen{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; text-align:center; }
-  .card{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:16px;
-  }
-  .btn{
-    display:inline-flex; align-items:center; justify-content:center; gap:8px;
-    border:none; border-radius:12px; padding:12px 18px;
-    font-family:'Inter',sans-serif; font-weight:600; font-size:15px;
-    cursor:pointer; width:100%;
-  }
-  .btn-primary{ background:var(--green); color:#fff; }
-  .btn-primary:hover{ background:var(--green-dark); }
-  .btn-orange{ background:var(--orange); color:#fff; }
-  .btn-orange:hover{ background:var(--orange-dark); }
-  .btn-outline{ background:transparent; color:var(--green); border:1.5px solid var(--green); }
-  .btn-danger{ background:transparent; color:var(--red); border:1.5px solid var(--red); }
-  .btn-sm{ width:auto; padding:8px 12px; font-size:13px; border-radius:9px; }
-  .btn:disabled{ opacity:.5; cursor:not-allowed; }
-  input[type=text], input[type=tel], input[type=number], input[type=password], select{
-    width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:11px;
-    font-size:15px; font-family:'Inter',sans-serif; background:#fff; color:var(--ink);
-  }
-  input:focus, select:focus{ outline:2px solid var(--green); outline-offset:1px; }
-  label.field-label{ display:block; font-size:13px; font-weight:600; color:var(--ink-soft); margin:0 0 6px 2px; }
-  .field{ margin-bottom:14px; }
-  .error-text{ color:var(--red); font-size:13px; margin-top:8px; }
-  .muted{ color:var(--ink-soft); font-size:13px; }
-  .row{ display:flex; align-items:center; }
-  .row.between{ justify-content:space-between; }
-  .row.gap{ gap:10px; }
-  .badge{ font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; }
-  .badge-green{ background:#E6F3EA; color:var(--green); }
-  .badge-orange{ background:#FDECDC; color:var(--orange-dark); }
-  .badge-red{ background:#FBE7E4; color:var(--red); }
-  .badge-grey{ background:#F0EEE9; color:var(--ink-soft); }
-  .divider{ height:1px; background:var(--line); margin:14px 0; }
-  .empty-state{ text-align:center; padding:50px 20px; color:var(--ink-soft); }
-  .empty-state .emoji{ font-size:42px; display:block; margin-bottom:10px; }
+  .tap{ transition:transform .12s ease; }
+  .tap:active{ transform:scale(0.94); }
 
-  /* ---------- Login ---------- */
-  .login-logo{ width:120px; height:120px; object-fit:contain; margin-bottom:6px; }
-  .login-title{ font-size:26px; font-weight:700; color:var(--green); margin:6px 0 2px; }
-  .login-title span{ color:var(--orange); }
-  .login-sub{ color:var(--ink-soft); font-size:14px; margin-bottom:26px; }
-  .phone-input-wrap{ display:flex; gap:8px; }
-  .phone-prefix{
-    display:flex; align-items:center; justify-content:center;
-    padding:0 14px; border:1.5px solid var(--line); border-radius:11px;
-    font-weight:600; color:var(--ink-soft); background:#fff;
-  }
-  .otp-boxes{ display:flex; gap:8px; justify-content:center; margin:18px 0; }
-  .otp-boxes input{ width:42px; height:52px; text-align:center; font-size:20px; font-weight:700; padding:0; }
-  .full-w{ width:100%; }
+  .chip{ transition:all .18s ease; }
+  .sheet{ transition:transform .28s cubic-bezier(.32,.72,0,1); }
 
-  /* ---------- Bottom tabs ---------- */
-  .tabbar{
-    position:fixed; bottom:0; left:50%; transform:translateX(-50%);
-    width:100%; max-width:480px; background:var(--card);
-    border-top:1px solid var(--line);
-    display:flex; z-index:20;
-  }
-  .tab-btn{
-    flex:1; background:none; border:none; padding:10px 4px 12px; cursor:pointer;
-    display:flex; flex-direction:column; align-items:center; gap:3px;
-    color:var(--ink-soft); font-family:'Inter',sans-serif; position:relative;
-  }
-  .tab-btn .tab-icon{ font-size:20px; }
-  .tab-btn .tab-label{ font-size:11px; font-weight:600; }
-  .tab-btn.active{ color:var(--green); }
-  .tab-btn .cart-count{
-    position:absolute; top:2px; right:calc(50% - 22px);
-    background:var(--orange); color:#fff; font-size:10px; font-weight:700;
-    min-width:16px; height:16px; border-radius:8px; display:flex; align-items:center; justify-content:center; padding:0 3px;
-  }
+  .skel{ background:linear-gradient(90deg,#E6EDE3 25%,#F1F6EF 37%,#E6EDE3 63%); background-size:400% 100%; animation:skel 1.4s ease infinite; }
+  @keyframes skel{ 0%{background-position:100% 50%;} 100%{background-position:0 50%;} }
 
-  /* ---------- Menu / items ---------- */
-  .category-title{ font-size:17px; font-weight:700; color:var(--green-dark); margin:22px 0 10px; }
-  .category-title:first-child{ margin-top:0; }
-  .item-row{
-    display:flex; align-items:center; gap:12px;
-    background:var(--card); border:1px solid var(--line); border-radius:14px;
-    padding:12px; margin-bottom:10px;
-  }
-  .item-icon{
-    width:46px; height:46px; border-radius:12px; background:var(--cream);
-    display:flex; align-items:center; justify-content:center; font-size:24px; flex-shrink:0;
-  }
-  .item-info{ flex:1; min-width:0; }
-  .item-name{ font-weight:600; font-size:15px; }
-  .item-price{ color:var(--orange-dark); font-weight:700; font-size:14px; margin-top:2px; }
-  .stepper{ display:flex; align-items:center; gap:0; border:1.5px solid var(--green); border-radius:10px; overflow:hidden; }
-  .stepper button{ background:var(--green); color:#fff; border:none; width:30px; height:30px; font-size:16px; cursor:pointer; }
-  .stepper span{ min-width:26px; text-align:center; font-weight:700; font-size:14px; }
-  .add-btn{ background:var(--green); color:#fff; border:none; padding:8px 16px; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; }
+  input,textarea{ font-family:'Inter',sans-serif; }
+  .badge-pulse{ animation:pulse-ring 1.6s ease infinite; }
+  @keyframes pulse-ring{ 0%{ box-shadow:0 0 0 0 rgba(240,124,29,.55);} 70%{ box-shadow:0 0 0 10px rgba(240,124,29,0);} 100%{box-shadow:0 0 0 0 rgba(240,124,29,0);} }
 
-  /* ---------- Cart ---------- */
-  .cart-row{ display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); }
-  .cart-row:last-child{ border-bottom:none; }
-  .cart-total-bar{
-    position:fixed; bottom:64px; left:50%; transform:translateX(-50%);
-    width:100%; max-width:480px; background:var(--green); color:#fff;
-    padding:14px 18px; display:flex; align-items:center; justify-content:space-between;
-    z-index:19; border-radius:16px 16px 0 0;
-  }
+  .order-new{ animation:flash 1.8s ease 2; }
+  @keyframes flash{ 0%,100%{ background-color:#fff;} 50%{ background-color:#FFF1DF;} }
 
-  /* ---------- Admin ---------- */
-  .admin-topbar{ background:var(--green); }
-  .admin-topbar .brand, .admin-topbar .tag{ color:#fff !important; }
-  .admin-tabs{ display:flex; gap:6px; padding:12px 18px 0; background:var(--card); border-bottom:1px solid var(--line); position:sticky; top:66px; z-index:19; }
-  .admin-tab{
-    flex:1; text-align:center; padding:10px 4px; border-radius:10px 10px 0 0;
-    font-size:13px; font-weight:700; cursor:pointer; color:var(--ink-soft); border-bottom:3px solid transparent;
-  }
-  .admin-tab.active{ color:var(--green); border-bottom:3px solid var(--green); }
-  .order-card{ border-left:4px solid var(--line); }
-  .order-card.status-new{ border-left-color:var(--orange); background:#FFFAF3; }
-  .order-card.status-delivered{ border-left-color:var(--green); }
-  .status-pill{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
-  .status-pill button{
-    flex:1; min-width:80px; padding:7px 6px; border-radius:8px; border:1px solid var(--line);
-    background:#fff; font-size:12px; font-weight:600; cursor:pointer; color:var(--ink-soft);
-  }
-  .status-pill button.current{ background:var(--green); color:#fff; border-color:var(--green); }
-  .toggle{
-    width:42px; height:24px; border-radius:14px; background:var(--line); position:relative; cursor:pointer; border:none; flex-shrink:0;
-  }
-  .toggle.on{ background:var(--red); }
-  .toggle .knob{ position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:#fff; transition:left .15s; }
-  .toggle.on .knob{ left:20px; }
-  .emoji-pick{ display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
-  .emoji-pick button{ font-size:18px; background:var(--cream); border:1px solid var(--line); border-radius:8px; padding:5px 8px; cursor:pointer; }
-  .toast{
-    position:fixed; top:14px; left:50%; transform:translateX(-50%); max-width:440px; width:calc(100% - 32px);
-    background:var(--green-dark); color:#fff; padding:12px 16px; border-radius:12px; z-index:60; font-size:14px; font-weight:600;
-    box-shadow:0 8px 24px rgba(0,0,0,.18);
-  }
+  #installBanner{ transform:translateY(-120%); }
+  #installBanner.show{ transform:translateY(0); }
+
+  #cartSheet{ transform:translateY(100%); }
+  #cartSheet.show{ transform:translateY(0); }
+  #checkoutModal, #confirmModal, #adminLogin, #productModal{ opacity:0; pointer-events:none; }
+  #checkoutModal.show, #confirmModal.show, #adminLogin.show, #productModal.show{ opacity:1; pointer-events:auto; }
 </style>
 </head>
-<body>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1F6E3D">
-<link rel="apple-touch-icon" href="icon-192.png">
-<noscript>Please enable JavaScript to use Lelo Sab Kuchh.</noscript>
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("sw.js").catch((err) => console.warn("Service worker failed:", err));
-    });
-  }
-</script>
+<body class="min-h-screen">
 
-<div id="root">
-  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:Inter,sans-serif;color:#786F62;gap:12px;">
-    <img src="lelo-logo.jpg" style="width:100px;" alt="" />
-    <span>Loading Lelo Sab Kuchh…</span>
+<!-- ============ INSTALL BANNER ============ -->
+<div id="installBanner" class="sheet fixed top-0 left-0 right-0 z-50 bg-[var(--green)] text-white">
+  <div class="max-w-md mx-auto flex items-center gap-3 px-4 py-3">
+    <img src="./icons/icon-32.png" class="w-8 h-8 rounded-lg" alt="Lelo" />
+    <div class="flex-1 min-w-0">
+      <p class="font-head font-semibold text-sm leading-tight">Install the Lelo app</p>
+      <p class="text-[11px] text-white/80 leading-tight">Order faster, right from your home screen</p>
+    </div>
+    <button id="installBtn" class="tap bg-[var(--orange)] hover:bg-[var(--orange-dark)] text-white text-sm font-semibold px-3 py-1.5 rounded-full whitespace-nowrap">Install</button>
+    <button id="installDismiss" class="tap text-white/70 text-xl leading-none px-1">&times;</button>
   </div>
 </div>
 
+<!-- ============ HEADER ============ -->
+<header class="sticky top-0 z-30 bg-[var(--sage)]/95 backdrop-blur border-b border-black/5">
+  <div class="max-w-md mx-auto px-4 pt-3 pb-2 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <img src="./icons/icon-32.png" class="w-9 h-9 rounded-xl" alt="Lelo" />
+      <div class="leading-none">
+        <div class="font-head font-extrabold text-xl text-[var(--green)]">Lelo</div>
+        <div class="text-[10px] text-[var(--green-dark)]/70 -mt-0.5">सब कुछ</div>
+      </div>
+    </div>
+    <button id="cartBtn" class="tap relative bg-white border border-black/10 rounded-full px-4 py-2 flex items-center gap-2 shadow-sm">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+      <span class="text-sm font-semibold text-[var(--green-dark)]">₹<span id="cartTotalHeader">0</span></span>
+      <span id="cartCount" class="hidden absolute -top-1.5 -right-1.5 bg-[var(--orange)] text-white text-[10px] font-bold w-5 h-5 rounded-full items-center justify-center">0</span>
+    </button>
+  </div>
+  <!-- search -->
+  <div class="max-w-md mx-auto px-4 pb-2">
+    <div class="relative">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A8B7D" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input id="searchInput" placeholder="Search atta, milk, snacks..." class="w-full bg-white border border-black/10 rounded-full pl-9 pr-4 py-2 text-sm outline-none focus:border-[var(--green)]" />
+    </div>
+  </div>
+  <!-- category chips -->
+  <div id="categoryChips" class="max-w-md mx-auto px-4 pb-3 flex gap-2 overflow-x-auto"></div>
+</header>
+
+<!-- ============ MAIN (customer) ============ -->
+<main id="storefront" class="max-w-md mx-auto px-4 pb-32 pt-3">
+  <div id="productSections"></div>
+  <div id="emptyState" class="hidden text-center py-16">
+    <p class="font-head text-lg text-[var(--green-dark)]">No items found</p>
+    <p class="text-sm text-[var(--ink)]/60 mt-1">Try a different search or category</p>
+  </div>
+</main>
+
+<!-- ============ FLOATING CART BUTTON (mobile) ============ -->
+<div id="floatingCart" class="hidden fixed bottom-4 left-0 right-0 z-30 px-4">
+  <button id="floatingCartBtn" class="tap w-full max-w-md mx-auto flex items-center justify-between bg-[var(--green)] text-white rounded-2xl px-5 py-3.5 shadow-lg shadow-black/20">
+    <span class="text-sm"><span id="floatingCartCount">0</span> item(s)</span>
+    <span class="font-head font-bold">View Cart · ₹<span id="floatingCartTotal">0</span></span>
+  </button>
+</div>
+
+<!-- ============ CART BOTTOM SHEET ============ -->
+<div id="cartOverlay" class="hidden fixed inset-0 bg-black/40 z-40"></div>
+<div id="cartSheet" class="sheet fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl max-w-md mx-auto max-h-[85vh] flex flex-col">
+  <div class="flex items-center justify-between px-5 pt-4 pb-2">
+    <h2 class="font-head font-bold text-lg text-[var(--green-dark)]">Your Cart</h2>
+    <button id="closeCart" class="tap text-2xl text-black/40">&times;</button>
+  </div>
+  <div id="cartItems" class="flex-1 overflow-y-auto px-5 py-2 space-y-3"></div>
+  <div class="px-5 pt-3 pb-6 border-t border-black/5 bg-white">
+    <div class="flex justify-between text-sm text-[var(--ink)]/70 mb-1">
+      <span>Subtotal</span><span>₹<span id="cartSubtotal">0</span></span>
+    </div>
+    <div class="flex justify-between font-head font-bold text-base text-[var(--green-dark)] mb-3">
+      <span>Total</span><span>₹<span id="cartGrandTotal">0</span></span>
+    </div>
+    <button id="placeOrderBtn" class="tap w-full bg-[var(--orange)] hover:bg-[var(--orange-dark)] text-white font-head font-bold py-3.5 rounded-2xl">Place Order</button>
+  </div>
+</div>
+
+<!-- ============ CHECKOUT MODAL ============ -->
+<div id="checkoutModal" class="sheet fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center">
+  <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-head font-bold text-lg text-[var(--green-dark)]">Confirm your order</h2>
+      <button id="closeCheckout" class="tap text-2xl text-black/40">&times;</button>
+    </div>
+    <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1">Your name (optional)</label>
+    <input id="custName" placeholder="e.g. Priya" class="w-full bg-[var(--sage)] rounded-xl px-4 py-3 text-sm mb-3 outline-none" />
+
+    <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1">Mobile number *</label>
+    <div class="flex items-center bg-[var(--sage)] rounded-xl mb-1 overflow-hidden">
+      <span class="pl-4 pr-2 text-sm text-[var(--ink)]/60">+91</span>
+      <input id="custPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number" class="flex-1 bg-transparent py-3 pr-4 text-sm outline-none" />
+    </div>
+    <p id="phoneError" class="hidden text-[11px] text-red-600 mb-2">Enter a valid 10-digit mobile number</p>
+
+    <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1 mt-2">Delivery location *</label>
+    <button id="shareLocationBtn" class="tap w-full flex items-center gap-2 justify-center bg-[var(--sage-deep)] text-[var(--green-dark)] font-semibold text-sm py-3 rounded-xl mb-1">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      <span id="locationBtnLabel">Share my current location</span>
+    </button>
+    <p id="locationStatus" class="text-[11px] text-[var(--ink)]/50 mb-2"></p>
+
+    <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1 mt-1">Address / landmark (optional)</label>
+    <textarea id="custAddress" rows="2" placeholder="House no, street, landmark" class="w-full bg-[var(--sage)] rounded-xl px-4 py-3 text-sm mb-4 outline-none resize-none"></textarea>
+
+    <div class="flex justify-between font-head font-bold text-base text-[var(--green-dark)] mb-4">
+      <span>Total to pay (Cash on Delivery)</span><span>₹<span id="checkoutTotal">0</span></span>
+    </div>
+
+    <button id="confirmOrderBtn" class="tap w-full bg-[var(--orange)] hover:bg-[var(--orange-dark)] text-white font-head font-bold py-3.5 rounded-2xl disabled:opacity-50">
+      <span id="confirmOrderLabel">Confirm Order</span>
+    </button>
+  </div>
+</div>
+
+<!-- ============ ORDER CONFIRMATION ============ -->
+<div id="confirmModal" class="sheet fixed inset-0 z-[60] bg-black/50 flex items-center justify-center px-6">
+  <div class="bg-white rounded-3xl w-full max-w-sm p-8 text-center">
+    <svg viewBox="0 0 100 100" width="90" height="90" class="mx-auto mb-3">
+      <path class="swoosh-check swoosh-anim" d="M20 52 C 35 68, 42 68, 50 58 C 58 46, 68 30, 82 18" />
+    </svg>
+    <h2 class="font-head font-extrabold text-xl text-[var(--green-dark)] mb-1">Order placed!</h2>
+    <p class="text-sm text-[var(--ink)]/60 mb-1">Order #<span id="orderIdShort"></span></p>
+    <p class="text-sm text-[var(--ink)]/70 mb-6">We've got it. Our team will call you shortly to confirm delivery.</p>
+    <button id="confirmDoneBtn" class="tap w-full bg-[var(--green)] text-white font-head font-bold py-3 rounded-2xl">Continue Shopping</button>
+  </div>
+</div>
+
+<!-- ============ ADMIN ENTRY (footer) ============ -->
+<footer id="customerFooter" class="max-w-md mx-auto px-4 pb-6 pt-2 text-center">
+  <a href="#admin" class="text-[11px] text-[var(--ink)]/40 underline">Admin login</a>
+</footer>
+
+<!-- ============ ADMIN LOGIN ============ -->
+<div id="adminLogin" class="sheet fixed inset-0 z-[70] bg-[var(--sage)] hidden flex-col items-center justify-center px-6">
+  <img src="./icons/icon-192.png" class="w-16 h-16 rounded-2xl mb-4" alt="Lelo" />
+  <h1 class="font-head font-extrabold text-xl text-[var(--green-dark)] mb-1">Admin Login</h1>
+  <p class="text-sm text-[var(--ink)]/60 mb-6 text-center">Sign in with your registered admin mobile number</p>
+
+  <div id="adminPhoneStep" class="w-full max-w-xs">
+    <div class="flex items-center bg-white border border-black/10 rounded-xl mb-3 overflow-hidden">
+      <span class="pl-4 pr-2 text-sm text-[var(--ink)]/60">+91</span>
+      <input id="adminPhoneInput" type="tel" inputmode="numeric" maxlength="10" placeholder="Admin mobile number" class="flex-1 bg-transparent py-3 pr-4 text-sm outline-none" />
+    </div>
+    <button id="sendOtpBtn" class="tap w-full bg-[var(--green)] text-white font-head font-bold py-3 rounded-xl">Send OTP</button>
+    <div id="recaptcha-container" class="mt-3"></div>
+  </div>
+
+  <div id="adminOtpStep" class="hidden w-full max-w-xs">
+    <p class="text-xs text-[var(--ink)]/60 mb-2">Enter the 6-digit OTP sent to your number</p>
+    <input id="adminOtpInput" type="tel" inputmode="numeric" maxlength="6" placeholder="OTP" class="w-full bg-white border border-black/10 rounded-xl px-4 py-3 text-sm mb-3 outline-none text-center tracking-[0.3em]" />
+    <button id="verifyOtpBtn" class="tap w-full bg-[var(--green)] text-white font-head font-bold py-3 rounded-xl">Verify & Login</button>
+  </div>
+
+  <p id="adminLoginError" class="hidden text-[12px] text-red-600 mt-3 text-center"></p>
+  <a href="#" id="backToStoreBtn" class="text-[12px] text-[var(--ink)]/40 underline mt-6">Back to store</a>
+</div>
+
+<!-- ============ ADMIN DASHBOARD ============ -->
+<div id="adminDash" class="hidden fixed inset-0 z-[65] bg-[var(--sage)] overflow-y-auto">
+  <header class="sticky top-0 z-10 bg-[var(--green)] text-white">
+    <div class="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="font-head font-bold">Lelo Admin</div>
+      <button id="adminLogoutBtn" class="tap text-xs bg-white/15 px-3 py-1.5 rounded-full">Logout</button>
+    </div>
+    <div class="max-w-md mx-auto px-4 flex gap-1 pb-2">
+      <button data-tab="orders" class="admin-tab flex-1 text-sm font-semibold py-2 rounded-lg bg-white text-[var(--green-dark)]">Orders</button>
+      <button data-tab="products" class="admin-tab flex-1 text-sm font-semibold py-2 rounded-lg text-white/80">Products</button>
+      <button data-tab="categories" class="admin-tab flex-1 text-sm font-semibold py-2 rounded-lg text-white/80">Categories</button>
+    </div>
+  </header>
+
+  <!-- Orders tab -->
+  <section id="tabOrders" class="max-w-md mx-auto px-4 py-4 space-y-3"></section>
+
+  <!-- Products tab -->
+  <section id="tabProducts" class="hidden max-w-md mx-auto px-4 py-4">
+    <button id="addProductBtn" class="tap w-full bg-[var(--orange)] text-white font-head font-bold py-3 rounded-xl mb-4">+ Add Product</button>
+    <div id="adminProductList" class="space-y-2"></div>
+  </section>
+
+  <!-- Categories tab -->
+  <section id="tabCategories" class="hidden max-w-md mx-auto px-4 py-4">
+    <div class="flex gap-2 mb-4">
+      <input id="newCategoryInput" placeholder="Category name (e.g. Bakery)" class="flex-1 bg-white border border-black/10 rounded-xl px-4 py-2.5 text-sm outline-none" />
+      <button id="addCategoryBtn" class="tap bg-[var(--green)] text-white font-semibold px-4 rounded-xl text-sm">Add</button>
+    </div>
+    <div id="seedWrap"></div>
+    <div id="adminCategoryList" class="space-y-2"></div>
+  </section>
+</div>
+
+<!-- ============ PRODUCT ADD/EDIT MODAL ============ -->
+<div id="productModal" class="sheet fixed inset-0 z-[80] bg-black/40 flex items-end sm:items-center justify-center">
+  <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h2 id="productModalTitle" class="font-head font-bold text-lg text-[var(--green-dark)]">Add Product</h2>
+      <button id="closeProductModal" class="tap text-2xl text-black/40">&times;</button>
+    </div>
+    <input type="hidden" id="pmId" />
+    <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1">Photo</label>
+    <div class="flex items-center gap-3 mb-3">
+      <img id="pmImagePreview" class="w-16 h-16 rounded-xl object-cover bg-[var(--sage)]" src="" />
+      <input id="pmImageFile" type="file" accept="image/*" class="text-xs flex-1" />
+    </div>
+    <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1">Category</label>
+    <select id="pmCategory" class="w-full bg-[var(--sage)] rounded-xl px-4 py-3 text-sm mb-3 outline-none"></select>
+    <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1">Name</label>
+    <input id="pmName" placeholder="e.g. Tomato" class="w-full bg-[var(--sage)] rounded-xl px-4 py-3 text-sm mb-3 outline-none" />
+    <div class="flex gap-3 mb-3">
+      <div class="flex-1">
+        <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1">Price (₹)</label>
+        <input id="pmPrice" type="number" min="0" placeholder="40" class="w-full bg-[var(--sage)] rounded-xl px-4 py-3 text-sm outline-none" />
+      </div>
+      <div class="flex-1">
+        <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1">Unit</label>
+        <input id="pmUnit" placeholder="per kg / per pc" class="w-full bg-[var(--sage)] rounded-xl px-4 py-3 text-sm outline-none" />
+      </div>
+    </div>
+    <label class="flex items-center gap-2 text-sm mb-4">
+      <input id="pmInStock" type="checkbox" checked class="w-4 h-4" /> In stock
+    </label>
+    <button id="pmSaveBtn" class="tap w-full bg-[var(--orange)] text-white font-head font-bold py-3.5 rounded-2xl mb-2">Save Product</button>
+    <button id="pmDeleteBtn" class="hidden tap w-full text-red-600 font-semibold text-sm py-2">Delete Product</button>
+  </div>
+</div>
+
+<!-- ============ TOAST ============ -->
+<div id="toastWrap" class="fixed top-4 left-0 right-0 z-[100] flex flex-col items-center gap-2 px-4 pointer-events-none"></div>
+
 <script>
-  // Plain, non-React watchdog: if the real app hasn't mounted within 8s
-  // (blocked script, no internet, ad-blocker, syntax error, etc.), replace
-  // the "Loading…" placeholder with an actual diagnostic instead of leaving
-  // the phone stuck on that screen forever with no explanation.
-  window.__leloBootError = null;
-  window.addEventListener("error", function(e){
-    window.__leloBootError = (e.message || "Unknown script error") +
-      (e.filename ? " — " + e.filename.split("/").pop() + ":" + e.lineno : "");
-  });
-  window.addEventListener("unhandledrejection", function(e){
-    window.__leloBootError = "Promise error: " + (e.reason && e.reason.message ? e.reason.message : e.reason);
-  });
-  if(location.protocol === "http:"){
-    window.__leloBootError = "This page loaded over an insecure connection (http, not https). On mobile data, your carrier can inject broken scripts into http pages — that's almost always the real cause of errors here. Ask your host to enable HTTPS/SSL for this domain.";
-  }
-  setTimeout(function(){
-    if(window.__leloMounted) return;
-    var root = document.getElementById("root");
-    if(!root) return;
-    root.innerHTML =
-      '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:Inter,sans-serif;color:#2B2620;padding:28px;text-align:center;gap:10px;">' +
-      '<div style="font-size:40px;">⚠️</div>' +
-      '<div style="font-weight:700;font-size:17px;">The app is taking too long to load</div>' +
-      '<div style="color:#786F62;font-size:14px;max-width:320px;">This usually means a script got blocked (no internet, an ad-blocker, or a firewall) or the page failed to build.</div>' +
-      (window.__leloBootError ? '<div style="font-size:12px;color:#C0392B;word-break:break-word;max-width:320px;">' + window.__leloBootError + '</div>' : '') +
-      '<button onclick="window.location.reload()" style="margin-top:10px;background:#1F6E3D;color:#fff;border:none;border-radius:12px;padding:12px 22px;font-weight:700;font-size:15px;">Reload</button>' +
-      '</div>';
-  }, 8000);
-</script>
-
-<!-- React -->
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-<!-- Firebase (compat build so it can run without a bundler) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
-<script type="text/babel" data-presets="react">
-const { useState, useEffect, useMemo, useRef, useCallback } = React;
-
 /* =========================================================
-   FIREBASE SETUP
+   FIREBASE CONFIG
+   Paste your config from:
+   Firebase Console > Project settings > General > Your apps > SDK setup
+   Project: lelo-sab-kuchh
    ========================================================= */
 const firebaseConfig = {
-  apiKey: "AIzaSyAs_2kLgsw3udhZXcbODAf5GduXfOjVG3Q",
+  apiKey: "PASTE_YOUR_API_KEY",
   authDomain: "lelo-sab-kuchh.firebaseapp.com",
   projectId: "lelo-sab-kuchh",
-  storageBucket: "lelo-sab-kuchh.firebasestorage.app",
-  messagingSenderId: "342006864517",
-  appId: "1:342006864517:web:01be2ea13bb213609267ec"
+  storageBucket: "lelo-sab-kuchh.appspot.com",
+  messagingSenderId: "PASTE_SENDER_ID",
+  appId: "PASTE_APP_ID"
 };
+
+const ADMIN_PHONES = ['+918929394920']; // E.164 format. Add more admins here if needed.
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+const storage = firebase.storage();
 
-const ADMIN_NUMBERS = ["+917497073993", "+918929394920"];
-const DEFAULT_VALIDITY_DAYS = 180;
-const APP_NAME = "Lelo Sab Kuchh";
+/* ---------- utility: withTimeout so nothing spins forever ---------- */
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`${label || 'Request'} timed out`)), ms))
+  ]);
+}
+
+function toast(msg, type='info'){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = `pointer-events-auto max-w-xs w-full text-center text-sm font-medium px-4 py-2.5 rounded-full shadow-lg ${type==='error' ? 'bg-red-600 text-white' : 'bg-[var(--green-dark)] text-white'}`;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 2600);
+}
+
+function beep(){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [880, 1180].forEach((freq, i)=>{
+      const o = ctx.createOscillator(); const g = ctx.createGain();
+      o.type='sine'; o.frequency.value=freq;
+      o.connect(g); g.connect(ctx.destination);
+      g.gain.setValueAtTime(0.0001, ctx.currentTime + i*0.18);
+      g.gain.exponentialRampToValueAtTime(0.2, ctx.currentTime + i*0.18 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + i*0.18 + 0.3);
+      o.start(ctx.currentTime + i*0.18);
+      o.stop(ctx.currentTime + i*0.18 + 0.32);
+    });
+  }catch(e){ /* audio not available */ }
+}
+
+/* ---------- state ---------- */
+let categories = [];
+let products = [];
+let cart = JSON.parse(localStorage.getItem('lelo_cart') || '{}'); // { productId: qty }
+let activeCategory = 'all';
+let searchTerm = '';
+let sharedLocation = null;
+let ordersUnsub = null;
+let firstOrdersLoad = true;
+
+function saveCart(){ localStorage.setItem('lelo_cart', JSON.stringify(cart)); }
 
 /* =========================================================
-   HELPERS
+   INSTALL PROMPT
    ========================================================= */
-function fmtDate(d){
-  if(!d) return "-";
-  const date = d.toDate ? d.toDate() : new Date(d);
-  return date.toLocaleDateString("en-IN", { day:"2-digit", month:"short", year:"numeric" });
-}
-function daysLeft(expiry){
-  if(!expiry) return 0;
-  const date = expiry.toDate ? expiry.toDate() : new Date(expiry);
-  return Math.ceil((date.getTime() - Date.now()) / 86400000);
-}
-function addDaysToDate(baseDate, days){
-  const d = baseDate ? new Date(baseDate) : new Date();
-  d.setDate(d.getDate() + days);
-  return d;
-}
-function rupee(n){ return "\u20B9" + Number(n || 0).toFixed(0); }
-function cx(...a){ return a.filter(Boolean).join(" "); }
-
-const FOOD_EMOJIS = ["🍕","🍔","🍟","🌮","🍗","🍛","🍜","🍚","🥗","🍞","🥛","🧀","🥦","🍎","🍌","🧃","☕","🍫","🥤","🍚"];
-
-/* =========================================================
-   TOAST
-   ========================================================= */
-function useToast(){
-  const [msg, setMsg] = useState(null);
-  const show = useCallback((m) => {
-    setMsg(m);
-    setTimeout(() => setMsg(null), 2600);
-  }, []);
-  const node = msg ? <div className="toast">{msg}</div> : null;
-  return [node, show];
-}
-
-/* =========================================================
-   LOGIN FLOW (Firebase Phone Auth OTP)
-   ========================================================= */
-function humanizeAuthError(e){
-  const code = e && e.code;
-  const map = {
-    "auth/invalid-app-credential": "This domain isn't authorized for OTP login yet. Add it under Firebase Console → Authentication → Settings → Authorized domains.",
-    "auth/argument-error": "OTP login isn't set up for this domain yet. Add it under Firebase Console → Authentication → Settings → Authorized domains.",
-    "auth/too-many-requests": "Too many attempts. Please wait a bit and try again.",
-    "auth/quota-exceeded": "SMS quota reached for today. Please try again later.",
-    "auth/invalid-phone-number": "That doesn't look like a valid mobile number.",
-    "auth/network-request-failed": "Network error. Check your connection and try again.",
-    "auth/operation-not-allowed": "Phone sign-in isn't enabled yet. Enable it in Firebase Console → Authentication → Sign-in method.",
-  };
-  return map[code] || (e && e.message) || "Could not send OTP. Please try again.";
-}
-
-function LoginScreen({ onLoggedIn }){
-  const [step, setStep] = useState("phone"); // phone | otp
-  const [phone, setPhone] = useState("");
-  const [otp, setOtp] = useState(["","","","","",""]);
-  const [confirmation, setConfirmation] = useState(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  // The reCAPTCHA verifier is created lazily, right when the person taps
-  // "Send OTP" — not on page load. Creating it on load is what causes a
-  // blank white screen if the domain isn't authorized yet or the reCAPTCHA
-  // script is blocked, since it can throw before anything is on screen.
-  const getRecaptcha = () => {
-    if(window.__leloRecaptcha){
-      try{ window.__leloRecaptcha.clear(); }catch(e){}
-      window.__leloRecaptcha = null;
-    }
-    window.__leloRecaptcha = new firebase.auth.RecaptchaVerifier("recaptcha-container", {
-      size: "invisible",
-    });
-    return window.__leloRecaptcha;
-  };
-
-  const sendOtp = async () => {
-    setError("");
-    if(!/^[6-9]\d{9}$/.test(phone)){
-      setError("Enter a valid 10-digit mobile number.");
-      return;
-    }
-    setLoading(true);
-    try{
-      const verifier = getRecaptcha();
-      const result = await auth.signInWithPhoneNumber("+91" + phone, verifier);
-      setConfirmation(result);
-      setStep("otp");
-    }catch(e){
-      console.error(e);
-      setError(humanizeAuthError(e));
-    }
-    setLoading(false);
-  };
-
-  const verifyOtp = async () => {
-    setError("");
-    const code = otp.join("");
-    if(code.length !== 6){ setError("Enter the 6-digit code."); return; }
-    setLoading(true);
-    try{
-      await confirmation.confirm(code);
-      onLoggedIn();
-    }catch(e){
-      console.error(e);
-      setError("Incorrect code. Please try again.");
-    }
-    setLoading(false);
-  };
-
-  const setOtpDigit = (i, v) => {
-    if(!/^\d?$/.test(v)) return;
-    const next = [...otp]; next[i] = v; setOtp(next);
-    if(v && i < 5) document.getElementById("otp-" + (i+1))?.focus();
-  };
-
-  return (
-    <div className="center-screen">
-      <img src="lelo-logo.jpg" className="login-logo" alt="Lelo Sab Kuchh" />
-      <div className="login-sub" style={{marginBottom: 24}}>Food &amp; grocery, delivered to your door.</div>
-
-      {step === "phone" && (
-        <div style={{width:"100%"}}>
-          <div className="field">
-            <label className="field-label">Mobile number</label>
-            <div className="phone-input-wrap">
-              <div className="phone-prefix">+91</div>
-              <input type="tel" maxLength="10" placeholder="98765 43210"
-                value={phone} onChange={e => setPhone(e.target.value.replace(/\D/g,""))} />
-            </div>
-          </div>
-          {error && <div className="error-text">{error}</div>}
-          <button className="btn btn-orange" style={{marginTop:10}} disabled={loading} onClick={sendOtp}>
-            {loading ? "Sending..." : "Send OTP"}
-          </button>
-        </div>
-      )}
-
-      {step === "otp" && (
-        <div style={{width:"100%"}}>
-          <div className="muted">Code sent to +91 {phone}</div>
-          <div className="otp-boxes">
-            {otp.map((d,i) => (
-              <input key={i} id={"otp-"+i} type="text" inputMode="numeric" maxLength="1"
-                value={d} onChange={e => setOtpDigit(i, e.target.value)} />
-            ))}
-          </div>
-          {error && <div className="error-text">{error}</div>}
-          <button className="btn btn-primary" disabled={loading} onClick={verifyOtp}>
-            {loading ? "Verifying..." : "Verify & Continue"}
-          </button>
-          <button className="btn" style={{background:"transparent", color:"var(--ink-soft)", marginTop:6}}
-            onClick={() => { setStep("phone"); setOtp(["","","","","",""]); }}>
-            Change number
-          </button>
-        </div>
-      )}
-
-      <div id="recaptcha-container"></div>
-    </div>
-  );
-}
-
-/* =========================================================
-   BLOCKED / EXPIRED SCREENS
-   ========================================================= */
-function StatusScreen({ emoji, title, sub, onLogout }){
-  return (
-    <div className="center-screen">
-      <div style={{fontSize:52}}>{emoji}</div>
-      <h2 style={{margin:"14px 0 6px"}}>{title}</h2>
-      <p className="muted">{sub}</p>
-      <button className="btn btn-outline" style={{marginTop:20, width:"auto", padding:"10px 24px"}} onClick={onLogout}>Log out</button>
-    </div>
-  );
-}
-
-/* =========================================================
-   USER APP
-   ========================================================= */
-function UserApp({ phone, userDoc, onLogout, showToast }){
-  const [tab, setTab] = useState("menu");
-  const [categories, setCategories] = useState([]);
-  const [items, setItems] = useState([]);
-  const [cart, setCart] = useState({});
-  const [deliveryPerson, setDeliveryPerson] = useState(null);
-  const [myOrders, setMyOrders] = useState([]);
-  const [placing, setPlacing] = useState(false);
-
-  useEffect(() => {
-    const unsub1 = db.collection("categories").orderBy("name").onSnapshot(snap => {
-      setCategories(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-    const unsub2 = db.collection("items").onSnapshot(snap => {
-      setItems(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
-    const unsub3 = db.collection("settings").doc("deliveryPerson").onSnapshot(snap => {
-      setDeliveryPerson(snap.exists ? snap.data() : null);
-    });
-    const unsub4 = db.collection("orders").where("phone", "==", phone)
-      .orderBy("createdAt", "desc").onSnapshot(snap => {
-        setMyOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      }, err => console.error(err));
-    return () => { unsub1(); unsub2(); unsub3(); unsub4(); };
-  }, [phone]);
-
-  const cartCount = Object.values(cart).reduce((a,b) => a+b, 0);
-  const cartLines = useMemo(() => {
-    return Object.entries(cart).filter(([,q]) => q > 0).map(([id,q]) => {
-      const item = items.find(i => i.id === id);
-      return item ? { ...item, qty: q } : null;
-    }).filter(Boolean);
-  }, [cart, items]);
-  const cartTotal = cartLines.reduce((sum, l) => sum + l.price * l.qty, 0);
-
-  const setQty = (id, qty) => setCart(c => ({ ...c, [id]: Math.max(0, qty) }));
-
-  const confirmOrder = () => {
-    if(cartLines.length === 0) return;
-    setPlacing(true);
-    const finalize = (location) => {
-      db.collection("orders").add({
-        phone,
-        items: cartLines.map(l => ({ itemId: l.id, name: l.name, price: l.price, qty: l.qty })),
-        total: cartTotal,
-        status: "new",
-        location: location || null,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      }).then(() => {
-        setCart({});
-        setPlacing(false);
-        setTab("orders");
-        showToast("Order placed! The store has been notified.");
-      }).catch(e => { console.error(e); setPlacing(false); showToast("Could not place order. Try again."); });
-    };
-    if(navigator.geolocation){
-      navigator.geolocation.getCurrentPosition(
-        pos => finalize({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => finalize(null),
-        { timeout: 6000 }
-      );
-    } else {
-      finalize(null);
-    }
-  };
-
-  const grouped = categories.map(cat => ({
-    ...cat,
-    items: items.filter(i => i.categoryId === cat.id),
-  })).filter(c => c.items.length > 0);
-  const uncategorized = items.filter(i => !categories.some(c => c.id === i.categoryId));
-
-  const statusLabel = { new:"Order received", preparing:"Preparing", out:"Out for delivery", delivered:"Delivered" };
-  const statusBadge = { new:"badge-orange", preparing:"badge-orange", out:"badge-green", delivered:"badge-green" };
-
-  return (
-    <React.Fragment>
-      <div className="topbar">
-        <img src="lelo-logo.jpg" alt="logo" />
-        <div>
-          <div className="brand">Lelo <span>Sab Kuchh</span></div>
-          <div className="tag">+91 {phone}</div>
-        </div>
-        <div className="spacer"></div>
-        <button className="icon-btn" onClick={onLogout}>Log out</button>
-      </div>
-
-      <div className="screen">
-        {tab === "menu" && (
-          items.length === 0 ? (
-            <div className="empty-state"><span className="emoji">🍽️</span>Menu is being set up.<br/>Please check back soon.</div>
-          ) : (
-            <React.Fragment>
-              {grouped.map(cat => (
-                <div key={cat.id}>
-                  <div className="category-title">{cat.name}</div>
-                  {cat.items.map(item => (
-                    <MenuItemRow key={item.id} item={item} qty={cart[item.id] || 0} setQty={q => setQty(item.id, q)} />
-                  ))}
-                </div>
-              ))}
-              {uncategorized.length > 0 && (
-                <div>
-                  <div className="category-title">Other items</div>
-                  {uncategorized.map(item => (
-                    <MenuItemRow key={item.id} item={item} qty={cart[item.id] || 0} setQty={q => setQty(item.id, q)} />
-                  ))}
-                </div>
-              )}
-            </React.Fragment>
-          )
-        )}
-
-        {tab === "cart" && (
-          cartLines.length === 0 ? (
-            <div className="empty-state"><span className="emoji">🛒</span>Your cart is empty.<br/>Add items from the menu.</div>
-          ) : (
-            <div className="card">
-              {cartLines.map(l => (
-                <div className="cart-row" key={l.id}>
-                  <div className="item-icon" style={{width:38,height:38,fontSize:19}}>{l.icon || "🍽️"}</div>
-                  <div className="item-info">
-                    <div className="item-name">{l.name}</div>
-                    <div className="item-price">{rupee(l.price)} x {l.qty} = {rupee(l.price*l.qty)}</div>
-                  </div>
-                  <div className="stepper">
-                    <button onClick={() => setQty(l.id, l.qty - 1)}>−</button>
-                    <span>{l.qty}</span>
-                    <button onClick={() => setQty(l.id, l.qty + 1)}>+</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )
-        )}
-
-        {tab === "contact" && (
-          <div className="card" style={{textAlign:"center", padding:26}}>
-            <div style={{fontSize:40}}>🛵</div>
-            {deliveryPerson ? (
-              <React.Fragment>
-                <h3 style={{margin:"10px 0 2px"}}>{deliveryPerson.name || "Delivery partner"}</h3>
-                <div className="muted" style={{marginBottom:18}}>+91 {deliveryPerson.phone}</div>
-                <div className="row gap">
-                  <a className="btn btn-primary" href={"tel:+91" + deliveryPerson.phone}>📞 Call</a>
-                  <a className="btn btn-orange" href={"https://wa.me/91" + deliveryPerson.phone} target="_blank" rel="noreferrer">💬 WhatsApp</a>
-                </div>
-              </React.Fragment>
-            ) : (
-              <p className="muted">Delivery contact hasn't been set up yet.</p>
-            )}
-          </div>
-        )}
-
-        {tab === "orders" && (
-          myOrders.length === 0 ? (
-            <div className="empty-state"><span className="emoji">📦</span>You have no orders yet.</div>
-          ) : (
-            myOrders.map(o => (
-              <div className="card" key={o.id} style={{marginBottom:12}}>
-                <div className="row between">
-                  <span className="muted">{o.createdAt ? fmtDate(o.createdAt) : "Just now"}</span>
-                  <span className={cx("badge", statusBadge[o.status] || "badge-grey")}>{statusLabel[o.status] || o.status}</span>
-                </div>
-                <div className="divider"></div>
-                {o.items.map((it,idx) => (
-                  <div key={idx} className="row between" style={{fontSize:14, marginBottom:4}}>
-                    <span>{it.name} x {it.qty}</span>
-                    <span>{rupee(it.price * it.qty)}</span>
-                  </div>
-                ))}
-                <div className="divider"></div>
-                <div className="row between" style={{fontWeight:700}}>
-                  <span>Total</span><span>{rupee(o.total)}</span>
-                </div>
-              </div>
-            ))
-          )
-        )}
-      </div>
-
-      {tab === "cart" && cartLines.length > 0 && (
-        <div className="cart-total-bar">
-          <div>
-            <div style={{fontSize:12, opacity:.85}}>{cartCount} item{cartCount>1?"s":""}</div>
-            <div style={{fontWeight:700, fontSize:17}}>{rupee(cartTotal)}</div>
-          </div>
-          <button className="btn btn-orange" style={{width:"auto", padding:"11px 22px"}} disabled={placing} onClick={confirmOrder}>
-            {placing ? "Placing..." : "Confirm order"}
-          </button>
-        </div>
-      )}
-
-      <div className="tabbar">
-        <TabBtn active={tab==="menu"} onClick={() => setTab("menu")} icon="🍽️" label="Menu" />
-        <TabBtn active={tab==="cart"} onClick={() => setTab("cart")} icon="🛒" label="Cart" count={cartCount} />
-        <TabBtn active={tab==="orders"} onClick={() => setTab("orders")} icon="📦" label="Orders" />
-        <TabBtn active={tab==="contact"} onClick={() => setTab("contact")} icon="🛵" label="Delivery" />
-      </div>
-    </React.Fragment>
-  );
-}
-
-function MenuItemRow({ item, qty, setQty }){
-  return (
-    <div className="item-row">
-      <div className="item-icon">{item.icon || "🍽️"}</div>
-      <div className="item-info">
-        <div className="item-name">{item.name}</div>
-        <div className="item-price">{rupee(item.price)}</div>
-      </div>
-      {qty > 0 ? (
-        <div className="stepper">
-          <button onClick={() => setQty(qty - 1)}>−</button>
-          <span>{qty}</span>
-          <button onClick={() => setQty(qty + 1)}>+</button>
-        </div>
-      ) : (
-        <button className="add-btn" onClick={() => setQty(1)}>Add</button>
-      )}
-    </div>
-  );
-}
-
-function TabBtn({ active, onClick, icon, label, count }){
-  return (
-    <button className={cx("tab-btn", active && "active")} onClick={onClick}>
-      {count > 0 && <span className="cart-count">{count}</span>}
-      <span className="tab-icon">{icon}</span>
-      <span className="tab-label">{label}</span>
-    </button>
-  );
-}
-
-/* =========================================================
-   ADMIN APP
-   ========================================================= */
-function AdminApp({ phone, onLogout, showToast }){
-  const [tab, setTab] = useState("items");
-  const [categories, setCategories] = useState([]);
-  const [items, setItems] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [deliveryPerson, setDeliveryPerson] = useState({ name:"", phone:"" });
-  const prevNewCount = useRef(0);
-
-  useEffect(() => {
-    if("Notification" in window && Notification.permission === "default"){
-      Notification.requestPermission();
-    }
-    const u1 = db.collection("categories").orderBy("name").onSnapshot(s => setCategories(s.docs.map(d => ({id:d.id, ...d.data()}))));
-    const u2 = db.collection("items").onSnapshot(s => setItems(s.docs.map(d => ({id:d.id, ...d.data()}))));
-    const u3 = db.collection("users").orderBy("createdAt", "desc").onSnapshot(s => setUsers(s.docs.map(d => ({id:d.id, ...d.data()}))));
-    const u4 = db.collection("orders").orderBy("createdAt", "desc").limit(200).onSnapshot(s => {
-      const list = s.docs.map(d => ({id:d.id, ...d.data()}));
-      const newCount = list.filter(o => o.status === "new").length;
-      if(newCount > prevNewCount.current){
-        showToast("🔔 New order received!");
-        if("Notification" in window && Notification.permission === "granted"){
-          new Notification(APP_NAME, { body: "A new order has come in." });
-        }
-      }
-      prevNewCount.current = newCount;
-      setOrders(list);
-    });
-    const u5 = db.collection("settings").doc("deliveryPerson").onSnapshot(s => {
-      if(s.exists) setDeliveryPerson(s.data());
-    });
-    return () => { u1(); u2(); u3(); u4(); u5(); };
-  }, []);
-
-  const newOrdersCount = orders.filter(o => o.status === "new").length;
-
-  return (
-    <React.Fragment>
-      <div className="topbar admin-topbar">
-        <img src="lelo-logo.jpg" alt="logo" />
-        <div>
-          <div className="brand">Admin console</div>
-          <div className="tag">+91 {phone}</div>
-        </div>
-        <div className="spacer"></div>
-        <button className="icon-btn" style={{color:"#fff"}} onClick={onLogout}>Log out</button>
-      </div>
-
-      <div className="admin-tabs">
-        <div className={cx("admin-tab", tab==="items" && "active")} onClick={() => setTab("items")}>Items</div>
-        <div className={cx("admin-tab", tab==="users" && "active")} onClick={() => setTab("users")}>Users</div>
-        <div className={cx("admin-tab", tab==="orders" && "active")} onClick={() => setTab("orders")}>
-          Orders{newOrdersCount > 0 ? " (" + newOrdersCount + ")" : ""}
-        </div>
-      </div>
-
-      <div className="screen">
-        {tab === "items" && <AdminItems categories={categories} items={items} deliveryPerson={deliveryPerson} showToast={showToast} />}
-        {tab === "users" && <AdminUsers users={users} showToast={showToast} />}
-        {tab === "orders" && <AdminOrders orders={orders} />}
-      </div>
-    </React.Fragment>
-  );
-}
-
-function AdminItems({ categories, items, deliveryPerson, showToast }){
-  const [catName, setCatName] = useState("");
-  const [form, setForm] = useState({ name:"", price:"", icon:"🍽️", categoryId:"" });
-  const [dp, setDp] = useState(deliveryPerson);
-
-  useEffect(() => setDp(deliveryPerson), [deliveryPerson]);
-
-  const addCategory = () => {
-    if(!catName.trim()) return;
-    db.collection("categories").add({ name: catName.trim() });
-    setCatName("");
-    showToast("Category added.");
-  };
-  const deleteCategory = (id) => {
-    if(items.some(i => i.categoryId === id)){
-      showToast("Move or delete items in this category first.");
-      return;
-    }
-    db.collection("categories").doc(id).delete();
-  };
-  const addItem = () => {
-    if(!form.name.trim() || !form.price) { showToast("Enter item name and price."); return; }
-    db.collection("items").add({
-      name: form.name.trim(),
-      price: Number(form.price),
-      icon: form.icon || "🍽️",
-      categoryId: form.categoryId || null,
-    });
-    setForm({ name:"", price:"", icon:"🍽️", categoryId:"" });
-    showToast("Item added.");
-  };
-  const updatePrice = (id, price) => db.collection("items").doc(id).update({ price: Number(price) });
-  const deleteItem = (id) => db.collection("items").doc(id).delete();
-  const saveDeliveryPerson = () => {
-    db.collection("settings").doc("deliveryPerson").set({ name: dp.name || "", phone: (dp.phone||"").replace(/\D/g,"") });
-    showToast("Delivery contact saved.");
-  };
-
-  return (
-    <React.Fragment>
-      <div className="card" style={{marginBottom:16}}>
-        <h3 style={{marginTop:0}}>Add category</h3>
-        <div className="row gap">
-          <input type="text" placeholder="e.g. Beverages" value={catName} onChange={e => setCatName(e.target.value)} />
-          <button className="btn btn-primary btn-sm" onClick={addCategory}>Add</button>
-        </div>
-      </div>
-
-      <div className="card" style={{marginBottom:16}}>
-        <h3 style={{marginTop:0}}>Add item</h3>
-        <div className="field">
-          <label className="field-label">Name</label>
-          <input type="text" value={form.name} onChange={e => setForm({...form, name:e.target.value})} />
-        </div>
-        <div className="row gap" style={{marginBottom:14}}>
-          <div style={{flex:1}}>
-            <label className="field-label">Price (₹)</label>
-            <input type="number" value={form.price} onChange={e => setForm({...form, price:e.target.value})} />
-          </div>
-          <div style={{flex:1}}>
-            <label className="field-label">Category</label>
-            <select value={form.categoryId} onChange={e => setForm({...form, categoryId:e.target.value})}>
-              <option value="">Uncategorized</option>
-              {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
-          </div>
-        </div>
-        <label className="field-label">Icon</label>
-        <input type="text" maxLength="2" value={form.icon} onChange={e => setForm({...form, icon:e.target.value})} style={{width:60}} />
-        <div className="emoji-pick">
-          {FOOD_EMOJIS.map(e => <button key={e} onClick={() => setForm({...form, icon:e})}>{e}</button>)}
-        </div>
-        <button className="btn btn-orange" style={{marginTop:14}} onClick={addItem}>Add item</button>
-      </div>
-
-      <h3>Current menu</h3>
-      {categories.map(cat => (
-        <div key={cat.id} style={{marginBottom:14}}>
-          <div className="row between" style={{marginBottom:6}}>
-            <div className="category-title" style={{margin:0}}>{cat.name}</div>
-            <button className="btn-sm btn-danger btn" onClick={() => deleteCategory(cat.id)}>Delete</button>
-          </div>
-          {items.filter(i => i.categoryId === cat.id).map(i => (
-            <ItemEditRow key={i.id} item={i} updatePrice={updatePrice} deleteItem={deleteItem} />
-          ))}
-          {items.filter(i => i.categoryId === cat.id).length === 0 && <div className="muted">No items yet.</div>}
-        </div>
-      ))}
-      {items.filter(i => !categories.some(c => c.id === i.categoryId)).map(i => (
-        <ItemEditRow key={i.id} item={i} updatePrice={updatePrice} deleteItem={deleteItem} />
-      ))}
-
-      <div className="card" style={{marginTop:20}}>
-        <h3 style={{marginTop:0}}>Delivery contact (shown to users)</h3>
-        <div className="field">
-          <label className="field-label">Name</label>
-          <input type="text" value={dp.name||""} onChange={e => setDp({...dp, name:e.target.value})} />
-        </div>
-        <div className="field">
-          <label className="field-label">Mobile number</label>
-          <input type="tel" maxLength="10" value={dp.phone||""} onChange={e => setDp({...dp, phone:e.target.value.replace(/\D/g,"")})} />
-        </div>
-        <button className="btn btn-primary" onClick={saveDeliveryPerson}>Save</button>
-      </div>
-    </React.Fragment>
-  );
-}
-
-function ItemEditRow({ item, updatePrice, deleteItem }){
-  const [price, setPrice] = useState(item.price);
-  return (
-    <div className="item-row">
-      <div className="item-icon">{item.icon}</div>
-      <div className="item-info"><div className="item-name">{item.name}</div></div>
-      <input type="number" value={price} onChange={e => setPrice(e.target.value)} style={{width:74, padding:"7px 8px"}} />
-      <button className="btn-sm btn btn-outline" onClick={() => updatePrice(item.id, price)}>Save</button>
-      <button className="btn-sm btn btn-danger" onClick={() => deleteItem(item.id)}>✕</button>
-    </div>
-  );
-}
-
-function AdminUsers({ users, showToast }){
-  const toggleBlock = (u) => db.collection("users").doc(u.id).update({ blocked: !u.blocked });
-  const adjustDays = (u, delta) => {
-    const base = u.expiryDate ? (u.expiryDate.toDate ? u.expiryDate.toDate() : new Date(u.expiryDate)) : new Date();
-    const newDate = addDaysToDate(base, delta);
-    db.collection("users").doc(u.id).update({ expiryDate: newDate });
-    showToast((delta > 0 ? "Extended" : "Reduced") + " validity by " + Math.abs(delta) + " day(s).");
-  };
-  return (
-    users.length === 0 ? (
-      <div className="empty-state"><span className="emoji">👥</span>No registered users yet.</div>
-    ) : (
-      users.map(u => {
-        const left = daysLeft(u.expiryDate);
-        const expired = left <= 0;
-        return (
-          <div className="card" key={u.id} style={{marginBottom:12}}>
-            <div className="row between">
-              <div>
-                <div style={{fontWeight:700}}>+91 {u.phone.replace("+91","")}</div>
-                <div className="muted">Joined {fmtDate(u.createdAt)}</div>
-              </div>
-              <button className={cx("toggle", u.blocked && "on")} onClick={() => toggleBlock(u)} title="Block user"><span className="knob"></span></button>
-            </div>
-            <div className="row between" style={{marginTop:10}}>
-              <span className={cx("badge", u.blocked ? "badge-red" : expired ? "badge-red" : "badge-green")}>
-                {u.blocked ? "Blocked" : expired ? "Expired" : left + " day(s) left"}
-              </span>
-              <span className="muted">Valid till {fmtDate(u.expiryDate)}</span>
-            </div>
-            <div className="row gap" style={{marginTop:10}}>
-              <button className="btn btn-sm btn-outline" onClick={() => adjustDays(u, -7)}>−7 days</button>
-              <button className="btn btn-sm btn-outline" onClick={() => adjustDays(u, 7)}>+7 days</button>
-              <button className="btn btn-sm btn-primary" onClick={() => adjustDays(u, 30)}>+30 days</button>
-            </div>
-          </div>
-        );
-      })
-    )
-  );
-}
-
-function AdminOrders({ orders }){
-  const statuses = ["new","preparing","out","delivered"];
-  const labels = { new:"New", preparing:"Preparing", out:"Out for delivery", delivered:"Delivered" };
-  const setStatus = (id, status) => db.collection("orders").doc(id).update({ status });
-
-  return (
-    orders.length === 0 ? (
-      <div className="empty-state"><span className="emoji">📭</span>No orders yet.</div>
-    ) : (
-      orders.map(o => (
-        <div className={cx("card order-card", "status-"+o.status)} key={o.id} style={{marginBottom:14}}>
-          <div className="row between">
-            <strong>+91 {o.phone.replace("+91","")}</strong>
-            <span className="muted">{o.createdAt ? fmtDate(o.createdAt) : "Just now"}</span>
-          </div>
-          <div className="row gap" style={{marginTop:8}}>
-            <a className="btn btn-sm btn-primary" href={"tel:" + o.phone}>📞 Call customer</a>
-            {o.location && (
-              <a className="btn btn-sm btn-outline" target="_blank" rel="noreferrer"
-                href={"https://www.google.com/maps?q=" + o.location.lat + "," + o.location.lng}>📍 View location</a>
-            )}
-          </div>
-          <div className="divider"></div>
-          {o.items.map((it,idx) => (
-            <div key={idx} className="row between" style={{fontSize:14, marginBottom:4}}>
-              <span>{it.name} x {it.qty}</span><span>{rupee(it.price*it.qty)}</span>
-            </div>
-          ))}
-          <div className="divider"></div>
-          <div className="row between" style={{fontWeight:700}}><span>Total</span><span>{rupee(o.total)}</span></div>
-          <div className="status-pill">
-            {statuses.map(s => (
-              <button key={s} className={o.status===s ? "current" : ""} onClick={() => setStatus(o.id, s)}>{labels[s]}</button>
-            ))}
-          </div>
-        </div>
-      ))
-    )
-  );
-}
-
-/* =========================================================
-   ERROR BOUNDARY — shows a message instead of a blank white page
-   ========================================================= */
-class ErrorBoundary extends React.Component {
-  constructor(props){ super(props); this.state = { error: null }; }
-  static getDerivedStateFromError(error){ return { error }; }
-  componentDidCatch(error, info){ console.error("Lelo Sab Kuchh crashed:", error, info); }
-  render(){
-    if(this.state.error){
-      return (
-        <div className="shell">
-          <div className="center-screen">
-            <div style={{fontSize:44}}>⚠️</div>
-            <h2 style={{margin:"14px 0 6px"}}>Something went wrong</h2>
-            <p className="muted" style={{wordBreak:"break-word"}}>{String(this.state.error.message || this.state.error)}</p>
-            <button className="btn btn-primary" style={{marginTop:16,width:"auto",padding:"10px 24px"}}
-              onClick={() => window.location.reload()}>Reload</button>
-          </div>
-        </div>
-      );
-    }
-    return this.props.children;
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (!localStorage.getItem('lelo_install_dismissed')) {
+    document.getElementById('installBanner').classList.add('show');
   }
-}
-
-/* =========================================================
-   ROOT APP — auth + routing
-   ========================================================= */
-function App(){
-  const [authUser, setAuthUser] = useState(undefined); // undefined = loading, null = logged out
-  const [userDoc, setUserDoc] = useState(undefined);
-  const [toastNode, showToast] = useToast();
-
-  useEffect(() => {
-    const unsub = auth.onAuthStateChanged(u => setAuthUser(u));
-    return unsub;
-  }, []);
-
-  useEffect(() => {
-    if(!authUser) { setUserDoc(null); return; }
-    if(ADMIN_NUMBERS.includes(authUser.phoneNumber)) { setUserDoc(null); return; }
-    const ref = db.collection("users").doc(authUser.phoneNumber);
-    const unsub = ref.onSnapshot(async snap => {
-      if(!snap.exists){
-        const expiry = addDaysToDate(new Date(), DEFAULT_VALIDITY_DAYS);
-        await ref.set({
-          phone: authUser.phoneNumber,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          expiryDate: expiry,
-          blocked: false,
-        });
-      } else {
-        setUserDoc(snap.data());
-      }
-    });
-    return unsub;
-  }, [authUser]);
-
-  const logout = () => auth.signOut();
-
-  let body;
-  if(authUser === undefined){
-    body = <div className="center-screen"><img src="lelo-logo.jpg" className="login-logo" alt="" /></div>;
-  } else if(authUser === null){
-    body = <LoginScreen onLoggedIn={() => {}} />;
-  } else if(ADMIN_NUMBERS.includes(authUser.phoneNumber)){
-    body = <AdminApp phone={authUser.phoneNumber.replace("+91","")} onLogout={logout} showToast={showToast} />;
-  } else if(userDoc === undefined){
-    body = <div className="center-screen"><img src="lelo-logo.jpg" className="login-logo" alt="" /></div>;
-  } else if(userDoc && userDoc.blocked){
-    body = <StatusScreen emoji="🚫" title="Account blocked" sub="Your account has been blocked. Please contact the store for help." onLogout={logout} />;
-  } else if(userDoc && daysLeft(userDoc.expiryDate) <= 0){
-    body = <StatusScreen emoji="⏳" title="Login expired" sub="Your app access has expired. Please contact the store to renew." onLogout={logout} />;
-  } else if(userDoc){
-    body = <UserApp phone={authUser.phoneNumber.replace("+91","")} userDoc={userDoc} onLogout={logout} showToast={showToast} />;
-  } else {
-    body = <div className="center-screen"><img src="lelo-logo.jpg" className="login-logo" alt="" /></div>;
+});
+document.getElementById('installBtn').addEventListener('click', async () => {
+  document.getElementById('installBanner').classList.remove('show');
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
   }
+});
+document.getElementById('installDismiss').addEventListener('click', () => {
+  document.getElementById('installBanner').classList.remove('show');
+  localStorage.setItem('lelo_install_dismissed', '1');
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').classList.remove('show');
+});
 
-  return <div className="shell">{toastNode}{body}</div>;
-}
-
-if("serviceWorker" in navigator){
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(err => console.warn("Service worker failed:", err));
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
   });
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<ErrorBoundary><App /></ErrorBoundary>);
-window.__leloMounted = true;
+/* =========================================================
+   RENDER: CATEGORY CHIPS
+   ========================================================= */
+function renderChips(){
+  const wrap = document.getElementById('categoryChips');
+  const all = [{id:'all', name:'All'}, ...categories];
+  wrap.innerHTML = all.map(c => `
+    <button data-cat="${c.id}" class="chip tap whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold border
+      ${activeCategory===c.id ? 'bg-[var(--green)] text-white border-[var(--green)]' : 'bg-white text-[var(--green-dark)] border-black/10'}">
+      ${c.name}
+    </button>`).join('');
+  wrap.querySelectorAll('[data-cat]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ activeCategory = btn.dataset.cat; renderChips(); renderProducts(); });
+  });
+}
+
+/* =========================================================
+   RENDER: PRODUCTS (grouped by category)
+   ========================================================= */
+function renderProducts(){
+  const wrap = document.getElementById('productSections');
+  const empty = document.getElementById('emptyState');
+  let list = products.filter(p => p.inStock !== false);
+  if (activeCategory !== 'all') list = list.filter(p => p.categoryId === activeCategory);
+  if (searchTerm.trim()) {
+    const t = searchTerm.trim().toLowerCase();
+    list = list.filter(p => p.name.toLowerCase().includes(t));
+  }
+
+  if (list.length === 0) {
+    wrap.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  const groups = {};
+  list.forEach(p => { (groups[p.categoryId] = groups[p.categoryId] || []).push(p); });
+
+  const catOrder = activeCategory === 'all' ? categories.map(c=>c.id) : [activeCategory];
+  let html = '';
+  catOrder.forEach(catId => {
+    const items = groups[catId];
+    if (!items || !items.length) return;
+    const cat = categories.find(c=>c.id===catId);
+    html += `<div class="mb-5">
+      <h3 class="font-head font-bold text-[15px] text-[var(--green-dark)] mb-2 flex items-center gap-1.5">
+        <span>${cat ? cat.emoji || '🛒' : '🛒'}</span> ${cat ? cat.name : ''}
+      </h3>
+      <div class="grid grid-cols-2 gap-3">
+        ${items.map(p => productCard(p)).join('')}
+      </div>
+    </div>`;
+  });
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll('[data-add]').forEach(btn=>{
+    btn.addEventListener('click', ()=> changeQty(btn.dataset.add, 1));
+  });
+  wrap.querySelectorAll('[data-minus]').forEach(btn=>{
+    btn.addEventListener('click', ()=> changeQty(btn.dataset.minus, -1));
+  });
+}
+
+function productCard(p){
+  const qty = cart[p.id] || 0;
+  const img = p.imageUrl
+    ? `<img src="${p.imageUrl}" class="w-full h-24 object-cover rounded-xl bg-[var(--sage)]" />`
+    : `<div class="w-full h-24 rounded-xl bg-[var(--sage-deep)] flex items-center justify-center text-3xl">${(categories.find(c=>c.id===p.categoryId)||{}).emoji || '🛒'}</div>`;
+  return `
+  <div class="bg-white rounded-2xl p-2.5 border border-black/5">
+    ${img}
+    <p class="font-semibold text-[13px] mt-2 leading-tight line-clamp-2">${p.name}</p>
+    <p class="text-[11px] text-[var(--ink)]/50 mb-2">${p.unit || ''}</p>
+    <div class="flex items-center justify-between">
+      <span class="font-head font-bold text-[var(--green-dark)] text-sm">₹${p.price}</span>
+      ${qty === 0
+        ? `<button data-add="${p.id}" class="tap bg-[var(--orange)] text-white text-xs font-bold px-3 py-1.5 rounded-full">ADD</button>`
+        : `<div class="flex items-center gap-2 bg-[var(--green)] rounded-full px-1">
+             <button data-minus="${p.id}" class="tap text-white w-6 h-6 text-base font-bold">−</button>
+             <span class="text-white text-xs font-bold w-4 text-center">${qty}</span>
+             <button data-add="${p.id}" class="tap text-white w-6 h-6 text-base font-bold">+</button>
+           </div>`
+      }
+    </div>
+  </div>`;
+}
+
+function changeQty(productId, delta){
+  const current = cart[productId] || 0;
+  const next = Math.max(0, current + delta);
+  if (next === 0) delete cart[productId]; else cart[productId] = next;
+  saveCart();
+  renderProducts();
+  renderCartUI();
+}
+
+/* =========================================================
+   CART UI
+   ========================================================= */
+function cartLines(){
+  return Object.entries(cart).map(([id, qty]) => {
+    const p = products.find(pr => pr.id === id);
+    if (!p) return null;
+    return { ...p, qty };
+  }).filter(Boolean);
+}
+
+function cartTotal(){
+  return cartLines().reduce((sum, l) => sum + l.price * l.qty, 0);
+}
+
+function renderCartUI(){
+  const lines = cartLines();
+  const total = cartTotal();
+  const count = lines.reduce((s,l)=>s+l.qty, 0);
+
+  document.getElementById('cartTotalHeader').textContent = total;
+  const badge = document.getElementById('cartCount');
+  if (count > 0) { badge.classList.remove('hidden'); badge.classList.add('flex'); badge.textContent = count; }
+  else { badge.classList.add('hidden'); badge.classList.remove('flex'); }
+
+  const floating = document.getElementById('floatingCart');
+  if (count > 0) {
+    floating.classList.remove('hidden');
+    document.getElementById('floatingCartCount').textContent = count;
+    document.getElementById('floatingCartTotal').textContent = total;
+  } else {
+    floating.classList.add('hidden');
+  }
+
+  document.getElementById('cartSubtotal').textContent = total;
+  document.getElementById('cartGrandTotal').textContent = total;
+  document.getElementById('checkoutTotal').textContent = total;
+
+  const itemsWrap = document.getElementById('cartItems');
+  if (lines.length === 0) {
+    itemsWrap.innerHTML = `<p class="text-center text-sm text-[var(--ink)]/50 py-10">Your cart is empty</p>`;
+  } else {
+    itemsWrap.innerHTML = lines.map(l => `
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-lg bg-[var(--sage)] flex items-center justify-center text-xl overflow-hidden">
+          ${l.imageUrl ? `<img src="${l.imageUrl}" class="w-full h-full object-cover"/>` : (categories.find(c=>c.id===l.categoryId)||{}).emoji || '🛒'}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-semibold truncate">${l.name}</p>
+          <p class="text-xs text-[var(--ink)]/50">₹${l.price} ${l.unit || ''}</p>
+        </div>
+        <div class="flex items-center gap-2 bg-[var(--sage)] rounded-full px-1">
+          <button data-minus="${l.id}" class="tap w-6 h-6 text-base font-bold text-[var(--green-dark)]">−</button>
+          <span class="text-xs font-bold w-4 text-center">${l.qty}</span>
+          <button data-add="${l.id}" class="tap w-6 h-6 text-base font-bold text-[var(--green-dark)]">+</button>
+        </div>
+      </div>
+    `).join('');
+    itemsWrap.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',()=>changeQty(b.dataset.add,1)));
+    itemsWrap.querySelectorAll('[data-minus]').forEach(b=>b.addEventListener('click',()=>changeQty(b.dataset.minus,-1)));
+  }
+}
+
+function openCart(){
+  document.getElementById('cartOverlay').classList.remove('hidden');
+  document.getElementById('cartSheet').classList.add('show');
+}
+function closeCart(){
+  document.getElementById('cartOverlay').classList.add('hidden');
+  document.getElementById('cartSheet').classList.remove('show');
+}
+document.getElementById('cartBtn').addEventListener('click', openCart);
+document.getElementById('floatingCartBtn').addEventListener('click', openCart);
+document.getElementById('closeCart').addEventListener('click', closeCart);
+document.getElementById('cartOverlay').addEventListener('click', closeCart);
+
+document.getElementById('searchInput').addEventListener('input', (e)=>{
+  searchTerm = e.target.value; renderProducts();
+});
+
+/* =========================================================
+   CHECKOUT
+   ========================================================= */
+function openCheckout(){
+  if (cartLines().length === 0) { toast('Your cart is empty'); return; }
+  closeCart();
+  document.getElementById('checkoutModal').classList.add('show');
+}
+function closeCheckout(){
+  document.getElementById('checkoutModal').classList.remove('show');
+}
+document.getElementById('placeOrderBtn').addEventListener('click', openCheckout);
+document.getElementById('closeCheckout').addEventListener('click', closeCheckout);
+
+document.getElementById('custPhone').addEventListener('input', (e)=>{
+  e.target.value = e.target.value.replace(/\D/g,'').slice(0,10);
+});
+
+document.getElementById('shareLocationBtn').addEventListener('click', ()=>{
+  const label = document.getElementById('locationBtnLabel');
+  const status = document.getElementById('locationStatus');
+  if (!navigator.geolocation) {
+    status.textContent = 'Location not supported on this device. Please add address below.';
+    return;
+  }
+  label.textContent = 'Getting your location...';
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      sharedLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      label.textContent = 'Location shared ✓';
+      status.textContent = `Lat ${sharedLocation.lat.toFixed(4)}, Lng ${sharedLocation.lng.toFixed(4)}`;
+      status.classList.add('text-[var(--green-dark)]');
+    },
+    () => {
+      label.textContent = 'Share my current location';
+      status.textContent = 'Could not get location. Please add your address below instead.';
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+});
+
+document.getElementById('confirmOrderBtn').addEventListener('click', async ()=>{
+  const phone = document.getElementById('custPhone').value.trim();
+  const phoneError = document.getElementById('phoneError');
+  if (phone.length !== 10) { phoneError.classList.remove('hidden'); return; }
+  phoneError.classList.add('hidden');
+
+  const address = document.getElementById('custAddress').value.trim();
+  if (!sharedLocation && !address) {
+    toast('Please share location or type your address', 'error');
+    return;
+  }
+
+  const lines = cartLines();
+  if (lines.length === 0) { toast('Your cart is empty', 'error'); return; }
+
+  const btn = document.getElementById('confirmOrderBtn');
+  const label = document.getElementById('confirmOrderLabel');
+  btn.disabled = true; label.textContent = 'Placing order...';
+
+  const order = {
+    items: lines.map(l => ({ productId: l.id, name: l.name, price: l.price, qty: l.qty, unit: l.unit || '' })),
+    subtotal: cartTotal(),
+    customerName: document.getElementById('custName').value.trim() || null,
+    phone: phone,
+    address: address || null,
+    location: sharedLocation || null,
+    status: 'new',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+
+  try {
+    const ref = await withTimeout(db.collection('orders').add(order), 12000, 'Placing order');
+    cart = {}; saveCart(); renderProducts(); renderCartUI();
+    document.getElementById('custName').value = '';
+    document.getElementById('custPhone').value = '';
+    document.getElementById('custAddress').value = '';
+    sharedLocation = null;
+    document.getElementById('locationBtnLabel').textContent = 'Share my current location';
+    document.getElementById('locationStatus').textContent = '';
+    closeCheckout();
+    document.getElementById('orderIdShort').textContent = ref.id.slice(-6).toUpperCase();
+    document.getElementById('confirmModal').classList.add('show');
+    document.querySelectorAll('.swoosh-anim').forEach(p=>{ p.style.animation='none'; void p.offsetWidth; p.style.animation=null; });
+  } catch (err) {
+    toast(err.message || 'Could not place order. Please try again.', 'error');
+  } finally {
+    btn.disabled = false; label.textContent = 'Confirm Order';
+  }
+});
+
+document.getElementById('confirmDoneBtn').addEventListener('click', ()=>{
+  document.getElementById('confirmModal').classList.remove('show');
+});
+
+/* =========================================================
+   LOAD CATEGORIES & PRODUCTS (public, live)
+   ========================================================= */
+function subscribeCatalog(){
+  db.collection('categories').orderBy('order','asc').onSnapshot(snap=>{
+    categories = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    renderChips();
+    renderProducts();
+    populateCategorySelect();
+    renderAdminCategories();
+  }, err=> console.error('categories', err));
+
+  db.collection('products').orderBy('order','asc').onSnapshot(snap=>{
+    products = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+    renderProducts();
+    renderAdminProducts();
+  }, err=> console.error('products', err));
+}
+
+/* =========================================================
+   ADMIN: ROUTING (hash based) + LOGIN
+   ========================================================= */
+function showAdminLogin(){
+  document.getElementById('adminLogin').classList.remove('hidden');
+  document.getElementById('adminLogin').classList.add('flex');
+  setTimeout(()=> document.getElementById('adminLogin').classList.add('show'), 10);
+  setupRecaptcha();
+}
+function hideAdminLogin(){
+  document.getElementById('adminLogin').classList.remove('show','flex');
+  document.getElementById('adminLogin').classList.add('hidden');
+}
+function showAdminDash(){
+  document.getElementById('adminDash').classList.remove('hidden');
+  document.getElementById('storefront').classList.add('hidden');
+  document.querySelector('header').classList.add('hidden');
+  document.getElementById('customerFooter').classList.add('hidden');
+}
+function showStorefront(){
+  document.getElementById('adminDash').classList.add('hidden');
+  document.getElementById('storefront').classList.remove('hidden');
+  document.querySelector('header').classList.remove('hidden');
+  document.getElementById('customerFooter').classList.remove('hidden');
+}
+
+window.addEventListener('hashchange', routeHash);
+function routeHash(){
+  if (window.location.hash === '#admin') {
+    if (auth.currentUser && ADMIN_PHONES.includes(auth.currentUser.phoneNumber)) {
+      hideAdminLogin(); showAdminDash();
+    } else {
+      showStorefront();
+      showAdminLogin();
+    }
+  } else {
+    hideAdminLogin();
+    if (!auth.currentUser) showStorefront();
+  }
+}
+
+document.getElementById('backToStoreBtn').addEventListener('click', (e)=>{
+  e.preventDefault();
+  window.location.hash = '';
+  hideAdminLogin();
+  showStorefront();
+});
+
+let confirmationResult = null;
+let recaptchaVerifier = null;
+
+function setupRecaptcha(){
+  if (recaptchaVerifier) return;
+  recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', { size: 'invisible' });
+}
+
+document.getElementById('sendOtpBtn').addEventListener('click', async ()=>{
+  const phoneDigits = document.getElementById('adminPhoneInput').value.trim();
+  const errEl = document.getElementById('adminLoginError');
+  errEl.classList.add('hidden');
+  if (phoneDigits.length !== 10) {
+    errEl.textContent = 'Enter a valid 10-digit mobile number';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  const fullPhone = '+91' + phoneDigits;
+  if (!ADMIN_PHONES.includes(fullPhone)) {
+    errEl.textContent = 'This number is not registered as an admin';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  const btn = document.getElementById('sendOtpBtn');
+  btn.disabled = true; btn.textContent = 'Sending...';
+  try {
+    setupRecaptcha();
+    confirmationResult = await withTimeout(
+      auth.signInWithPhoneNumber(fullPhone, recaptchaVerifier), 15000, 'Sending OTP'
+    );
+    document.getElementById('adminPhoneStep').classList.add('hidden');
+    document.getElementById('adminOtpStep').classList.remove('hidden');
+    toast('OTP sent');
+  } catch (err) {
+    errEl.textContent = err.message || 'Could not send OTP. Try again.';
+    errEl.classList.remove('hidden');
+    if (recaptchaVerifier) { recaptchaVerifier.render().then(id=>{ if(window.grecaptcha) window.grecaptcha.reset(id); }); }
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send OTP';
+  }
+});
+
+document.getElementById('verifyOtpBtn').addEventListener('click', async ()=>{
+  const code = document.getElementById('adminOtpInput').value.trim();
+  const errEl = document.getElementById('adminLoginError');
+  errEl.classList.add('hidden');
+  if (code.length !== 6) {
+    errEl.textContent = 'Enter the 6-digit OTP';
+    errEl.classList.remove('hidden');
+    return;
+  }
+  const btn = document.getElementById('verifyOtpBtn');
+  btn.disabled = true; btn.textContent = 'Verifying...';
+  try {
+    await withTimeout(confirmationResult.confirm(code), 15000, 'Verifying OTP');
+    // onAuthStateChanged will route to dashboard
+  } catch (err) {
+    errEl.textContent = 'Incorrect OTP. Please try again.';
+    errEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Verify & Login';
+  }
+});
+
+document.getElementById('adminLogoutBtn').addEventListener('click', async ()=>{
+  if (ordersUnsub) { ordersUnsub(); ordersUnsub = null; }
+  await auth.signOut();
+  window.location.hash = '';
+  showStorefront();
+});
+
+auth.onAuthStateChanged(user=>{
+  if (user && ADMIN_PHONES.includes(user.phoneNumber)) {
+    document.getElementById('adminPhoneStep').classList.remove('hidden');
+    document.getElementById('adminOtpStep').classList.add('hidden');
+    document.getElementById('adminPhoneInput').value = '';
+    document.getElementById('adminOtpInput').value = '';
+    hideAdminLogin();
+    showAdminDash();
+    subscribeOrders();
+  } else {
+    if (ordersUnsub) { ordersUnsub(); ordersUnsub = null; }
+    if (window.location.hash === '#admin') showAdminLogin();
+  }
+});
+
+/* =========================================================
+   ADMIN TABS
+   ========================================================= */
+document.querySelectorAll('.admin-tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.admin-tab').forEach(b=>{
+      b.classList.remove('bg-white','text-[var(--green-dark)]');
+      b.classList.add('text-white/80');
+    });
+    btn.classList.add('bg-white','text-[var(--green-dark)]');
+    btn.classList.remove('text-white/80');
+    ['orders','products','categories'].forEach(t=>{
+      document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle('hidden', t !== btn.dataset.tab);
+    });
+  });
+});
+
+/* =========================================================
+   ADMIN: LIVE ORDERS
+   ========================================================= */
+const STATUS_FLOW = ['new','confirmed','out_for_delivery','delivered'];
+const STATUS_LABEL = { new:'New', confirmed:'Confirmed', out_for_delivery:'Out for delivery', delivered:'Delivered', cancelled:'Cancelled' };
+const STATUS_COLOR = { new:'bg-[var(--orange)]', confirmed:'bg-blue-500', out_for_delivery:'bg-purple-500', delivered:'bg-[var(--green)]', cancelled:'bg-gray-400' };
+
+function subscribeOrders(){
+  if (ordersUnsub) return;
+  firstOrdersLoad = true;
+  ordersUnsub = db.collection('orders').orderBy('createdAt','desc').limit(100)
+    .onSnapshot(snap=>{
+      const orders = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+      renderOrders(orders);
+
+      if (!firstOrdersLoad) {
+        snap.docChanges().forEach(change=>{
+          if (change.type === 'added' && !change.doc.metadata.hasPendingWrites) {
+            beep();
+            toast('🛒 New order received!');
+            if (window.Notification && Notification.permission === 'granted') {
+              try { new Notification('New Lelo order', { body: `₹${change.doc.data().subtotal} · ${change.doc.data().phone}`, icon: './icons/icon-192.png' }); } catch(e){}
+            }
+            const el = document.querySelector(`[data-order-id="${change.doc.id}"]`);
+            if (el) el.classList.add('order-new');
+          }
+        });
+      }
+      firstOrdersLoad = false;
+    }, err=> console.error('orders', err));
+
+  if (window.Notification && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function renderOrders(orders){
+  const wrap = document.getElementById('tabOrders');
+  if (orders.length === 0) {
+    wrap.innerHTML = `<p class="text-center text-sm text-[var(--ink)]/50 py-10">No orders yet</p>`;
+    return;
+  }
+  wrap.innerHTML = orders.map(o=>{
+    const time = o.createdAt && o.createdAt.toDate ? o.createdAt.toDate().toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : 'Just now';
+    const mapLink = o.location ? `https://www.google.com/maps?q=${o.location.lat},${o.location.lng}` : null;
+    const nextStatus = STATUS_FLOW[STATUS_FLOW.indexOf(o.status)+1];
+    return `
+    <div data-order-id="${o.id}" class="bg-white rounded-2xl p-4 border border-black/5">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-xs font-bold text-[var(--ink)]/40">#${o.id.slice(-6).toUpperCase()} · ${time}</span>
+        <span class="text-[10px] font-bold text-white px-2 py-1 rounded-full ${STATUS_COLOR[o.status]||'bg-gray-400'}">${STATUS_LABEL[o.status]||o.status}</span>
+      </div>
+      <p class="text-sm font-semibold">${o.customerName || 'Customer'} · <a href="tel:+91${o.phone}" class="text-[var(--green-dark)] underline">+91 ${o.phone}</a></p>
+      ${o.address ? `<p class="text-xs text-[var(--ink)]/60 mt-0.5">${o.address}</p>` : ''}
+      ${mapLink ? `<a href="${mapLink}" target="_blank" class="text-xs text-blue-600 underline">📍 View location on map</a>` : ''}
+      <div class="mt-2 space-y-0.5">
+        ${(o.items||[]).map(it=>`<p class="text-xs text-[var(--ink)]/70">${it.qty} × ${it.name} — ₹${it.price*it.qty}</p>`).join('')}
+      </div>
+      <div class="flex items-center justify-between mt-2 pt-2 border-t border-black/5">
+        <span class="font-head font-bold text-sm text-[var(--green-dark)]">₹${o.subtotal}</span>
+        <div class="flex gap-2">
+          ${nextStatus ? `<button data-advance="${o.id}" data-next="${nextStatus}" class="tap text-xs font-semibold bg-[var(--green)] text-white px-3 py-1.5 rounded-full">Mark ${STATUS_LABEL[nextStatus]}</button>` : ''}
+          ${o.status !== 'delivered' && o.status !== 'cancelled' ? `<button data-cancel="${o.id}" class="tap text-xs font-semibold text-red-600 px-2 py-1.5">Cancel</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  wrap.querySelectorAll('[data-advance]').forEach(btn=>{
+    btn.addEventListener('click', ()=> updateOrderStatus(btn.dataset.advance, btn.dataset.next));
+  });
+  wrap.querySelectorAll('[data-cancel]').forEach(btn=>{
+    btn.addEventListener('click', ()=> { if(confirm('Cancel this order?')) updateOrderStatus(btn.dataset.cancel, 'cancelled'); });
+  });
+}
+
+async function updateOrderStatus(id, status){
+  try {
+    await withTimeout(db.collection('orders').doc(id).update({ status, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() }), 10000, 'Updating order');
+  } catch (err) { toast(err.message, 'error'); }
+}
+
+/* =========================================================
+   ADMIN: CATEGORIES CRUD
+   ========================================================= */
+function populateCategorySelect(){
+  const sel = document.getElementById('pmCategory');
+  sel.innerHTML = categories.map(c=>`<option value="${c.id}">${c.emoji||''} ${c.name}</option>`).join('');
+}
+
+function renderAdminCategories(){
+  const wrap = document.getElementById('adminCategoryList');
+  wrap.innerHTML = categories.map(c=>`
+    <div class="bg-white rounded-xl p-3 flex items-center justify-between border border-black/5">
+      <span class="text-sm font-semibold">${c.emoji||'🛒'} ${c.name}</span>
+      <button data-delcat="${c.id}" class="tap text-xs text-red-600 font-semibold">Delete</button>
+    </div>`).join('');
+  wrap.querySelectorAll('[data-delcat]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      if (!confirm('Delete this category? Products in it will remain but be uncategorized.')) return;
+      await db.collection('categories').doc(btn.dataset.delcat).delete();
+    });
+  });
+
+  const seedWrap = document.getElementById('seedWrap');
+  if (categories.length === 0) {
+    seedWrap.innerHTML = `<button id="seedBtn" class="tap w-full bg-[var(--sage-deep)] text-[var(--green-dark)] font-semibold text-sm py-3 rounded-xl mb-4">🌱 Seed sample categories & products</button>`;
+    document.getElementById('seedBtn').addEventListener('click', seedSampleData);
+  } else {
+    seedWrap.innerHTML = '';
+  }
+}
+
+document.getElementById('addCategoryBtn').addEventListener('click', async ()=>{
+  const input = document.getElementById('newCategoryInput');
+  const name = input.value.trim();
+  if (!name) return;
+  await db.collection('categories').add({ name, emoji:'🛒', order: categories.length });
+  input.value = '';
+});
+
+/* =========================================================
+   ADMIN: PRODUCTS CRUD
+   ========================================================= */
+function renderAdminProducts(){
+  const wrap = document.getElementById('adminProductList');
+  wrap.innerHTML = products.map(p=>{
+    const cat = categories.find(c=>c.id===p.categoryId);
+    return `
+    <div class="bg-white rounded-xl p-3 flex items-center gap-3 border border-black/5">
+      <div class="w-12 h-12 rounded-lg bg-[var(--sage)] flex items-center justify-center text-xl overflow-hidden shrink-0">
+        ${p.imageUrl ? `<img src="${p.imageUrl}" class="w-full h-full object-cover"/>` : (cat ? cat.emoji : '🛒')}
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold truncate">${p.name} ${p.inStock===false ? '<span class=\"text-red-500 text-[10px]\">(out of stock)</span>' : ''}</p>
+        <p class="text-xs text-[var(--ink)]/50">₹${p.price} ${p.unit||''} · ${cat ? cat.name : 'Uncategorized'}</p>
+      </div>
+      <button data-editprod="${p.id}" class="tap text-xs font-semibold text-[var(--green-dark)] bg-[var(--sage)] px-3 py-1.5 rounded-full">Edit</button>
+    </div>`;
+  }).join('');
+  wrap.querySelectorAll('[data-editprod]').forEach(btn=>{
+    btn.addEventListener('click', ()=> openProductModal(btn.dataset.editprod));
+  });
+}
+
+let pmImageFileObj = null;
+
+function openProductModal(id){
+  const modal = document.getElementById('productModal');
+  document.getElementById('pmImageFile').value = '';
+  pmImageFileObj = null;
+  if (id) {
+    const p = products.find(pr=>pr.id===id);
+    document.getElementById('productModalTitle').textContent = 'Edit Product';
+    document.getElementById('pmId').value = p.id;
+    document.getElementById('pmName').value = p.name;
+    document.getElementById('pmPrice').value = p.price;
+    document.getElementById('pmUnit').value = p.unit || '';
+    document.getElementById('pmCategory').value = p.categoryId;
+    document.getElementById('pmInStock').checked = p.inStock !== false;
+    document.getElementById('pmImagePreview').src = p.imageUrl || './icons/icon-192.png';
+    document.getElementById('pmDeleteBtn').classList.remove('hidden');
+  } else {
+    document.getElementById('productModalTitle').textContent = 'Add Product';
+    document.getElementById('pmId').value = '';
+    document.getElementById('pmName').value = '';
+    document.getElementById('pmPrice').value = '';
+    document.getElementById('pmUnit').value = '';
+    document.getElementById('pmInStock').checked = true;
+    document.getElementById('pmImagePreview').src = './icons/icon-192.png';
+    document.getElementById('pmDeleteBtn').classList.add('hidden');
+  }
+  modal.classList.add('show');
+}
+document.getElementById('addProductBtn').addEventListener('click', ()=> openProductModal(null));
+document.getElementById('closeProductModal').addEventListener('click', ()=> document.getElementById('productModal').classList.remove('show'));
+
+document.getElementById('pmImageFile').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 3*1024*1024) { toast('Image must be under 3MB', 'error'); e.target.value=''; return; }
+  pmImageFileObj = file;
+  document.getElementById('pmImagePreview').src = URL.createObjectURL(file);
+});
+
+async function uploadProductImage(file, productId){
+  const ref = storage.ref().child(`product-images/${productId}_${Date.now()}`);
+  await withTimeout(ref.put(file), 30000, 'Uploading image');
+  return withTimeout(ref.getDownloadURL(), 10000, 'Fetching image URL');
+}
+
+document.getElementById('pmSaveBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('pmId').value;
+  const name = document.getElementById('pmName').value.trim();
+  const price = parseFloat(document.getElementById('pmPrice').value);
+  const unit = document.getElementById('pmUnit').value.trim();
+  const categoryId = document.getElementById('pmCategory').value;
+  const inStock = document.getElementById('pmInStock').checked;
+
+  if (!name || !categoryId || isNaN(price) || price < 0) { toast('Please fill name, category and a valid price', 'error'); return; }
+
+  const btn = document.getElementById('pmSaveBtn');
+  btn.disabled = true; btn.textContent = 'Saving...';
+  try {
+    const data = { name, price, unit, categoryId, inStock, order: id ? undefined : products.length };
+    Object.keys(data).forEach(k => data[k] === undefined && delete data[k]);
+
+    let docId = id;
+    if (!id) {
+      const ref = await db.collection('products').add(data);
+      docId = ref.id;
+    } else {
+      await db.collection('products').doc(id).update(data);
+    }
+
+    if (pmImageFileObj) {
+      const url = await uploadProductImage(pmImageFileObj, docId);
+      await db.collection('products').doc(docId).update({ imageUrl: url });
+    }
+    document.getElementById('productModal').classList.remove('show');
+    toast('Product saved');
+  } catch (err) {
+    toast(err.message || 'Could not save product', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save Product';
+  }
+});
+
+document.getElementById('pmDeleteBtn').addEventListener('click', async ()=>{
+  const id = document.getElementById('pmId').value;
+  if (!id || !confirm('Delete this product?')) return;
+  await db.collection('products').doc(id).delete();
+  document.getElementById('productModal').classList.remove('show');
+});
+
+/* =========================================================
+   SEED SAMPLE DATA (one-time, admin-triggered)
+   ========================================================= */
+async function seedSampleData(){
+  if (categories.length > 0) { toast('Categories already exist'); return; }
+  const btn = document.getElementById('seedBtn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Seeding...'; }
+
+  const sample = [
+    { name:'Vegetables', emoji:'🥦', products:[
+      { name:'Tomato', price:30, unit:'per kg' },
+      { name:'Onion', price:35, unit:'per kg' },
+      { name:'Potato', price:25, unit:'per kg' },
+      { name:'Green Capsicum', price:50, unit:'per kg' }
+    ]},
+    { name:'Fruits', emoji:'🍎', products:[
+      { name:'Banana', price:50, unit:'per dozen' },
+      { name:'Apple', price:150, unit:'per kg' },
+      { name:'Papaya', price:35, unit:'per pc' }
+    ]},
+    { name:'Dairy & Eggs', emoji:'🥛', products:[
+      { name:'Full Cream Milk', price:32, unit:'per 500ml' },
+      { name:'Paneer', price:90, unit:'per 200g' },
+      { name:'Eggs', price:75, unit:'per dozen' }
+    ]},
+    { name:'Atta, Rice & Dal', emoji:'🌾', products:[
+      { name:'Wheat Atta', price:60, unit:'per kg' },
+      { name:'Basmati Rice', price:120, unit:'per kg' },
+      { name:'Toor Dal', price:140, unit:'per kg' }
+    ]},
+    { name:'Snacks', emoji:'🍪', products:[
+      { name:'Namkeen Mix', price:45, unit:'per 200g' },
+      { name:'Biscuits', price:30, unit:'per pack' }
+    ]},
+    { name:'Beverages', emoji:'🥤', products:[
+      { name:'Tea Powder', price:110, unit:'per 250g' },
+      { name:'Mineral Water', price:20, unit:'per 1L' }
+    ]}
+  ];
+
+  try {
+    let catOrder = 0;
+    for (const cat of sample) {
+      const catRef = await db.collection('categories').add({ name: cat.name, emoji: cat.emoji, order: catOrder++ });
+      let prodOrder = 0;
+      for (const p of cat.products) {
+        await db.collection('products').add({ ...p, categoryId: catRef.id, inStock: true, order: prodOrder++ });
+      }
+    }
+    toast('Sample data added!');
+  } catch (err) {
+    toast(err.message || 'Seeding failed', 'error');
+  }
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+subscribeCatalog();
+renderCartUI();
+routeHash();
 </script>
 </body>
 </html>
