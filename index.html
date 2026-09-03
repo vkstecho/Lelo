@@ -78,7 +78,7 @@
     <img src="./icons/icon-32.png" class="w-8 h-8 rounded-lg" alt="Lelo" />
     <div class="flex-1 min-w-0">
       <p class="font-head font-semibold text-sm leading-tight">Install the Lelo app</p>
-      <p class="text-[11px] text-white/80 leading-tight">Order faster, right from your home screen</p>
+      <p class="text-xs text-white/80 leading-tight">Order faster, right from your home screen</p>
     </div>
     <button id="installBtn" class="tap bg-[var(--orange)] hover:bg-[var(--orange-dark)] text-white text-sm font-semibold px-3 py-1.5 rounded-full whitespace-nowrap">Install</button>
     <button id="installDismiss" class="tap text-white/70 text-xl leading-none px-1">&times;</button>
@@ -92,14 +92,24 @@
       <img src="./icons/icon-32.png" class="w-9 h-9 rounded-xl" alt="Lelo" />
       <div class="leading-none">
         <div class="font-head font-extrabold text-xl text-[var(--green)]">Lelo</div>
-        <div class="text-[10px] text-[var(--green-dark)]/70 -mt-0.5">सब कुछ</div>
+        <div class="text-xs text-[var(--green-dark)]/70 -mt-0.5">सब कुछ</div>
       </div>
     </div>
-    <button id="cartBtn" class="tap relative bg-white border border-black/10 rounded-full px-4 py-2 flex items-center gap-2 shadow-sm">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-      <span class="text-sm font-semibold text-[var(--green-dark)]">₹<span id="cartTotalHeader">0</span></span>
-      <span id="cartCount" class="hidden absolute -top-1.5 -right-1.5 bg-[var(--orange)] text-white text-[10px] font-bold w-5 h-5 rounded-full items-center justify-center">0</span>
-    </button>
+    <div class="flex items-center gap-1.5">
+      <button id="profileBtn" class="tap relative bg-white border border-black/10 rounded-full w-10 h-10 flex items-center justify-center shadow-sm">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span id="profileDot" class="hidden absolute top-0 right-0 w-2.5 h-2.5 bg-[var(--orange)] rounded-full border-2 border-white"></span>
+      </button>
+      <button id="ordersBtn" class="tap relative bg-white border border-black/10 rounded-full w-10 h-10 flex items-center justify-center shadow-sm">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span id="ordersBadge" class="hidden absolute -top-1.5 -right-1.5 bg-[var(--orange)] text-white text-[10px] font-bold w-5 h-5 rounded-full items-center justify-center border-2 border-[var(--sage)]">0</span>
+      </button>
+      <button id="cartBtn" class="tap relative bg-white border border-black/10 rounded-full pl-3 pr-3.5 py-2 flex items-center gap-1.5 shadow-sm">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <span class="text-sm font-semibold text-[var(--green-dark)]">₹<span id="cartTotalHeader">0</span></span>
+        <span id="cartCount" class="hidden absolute -top-1.5 -right-1.5 bg-[var(--orange)] text-white text-xs font-bold w-5 h-5 rounded-full items-center justify-center">0</span>
+      </button>
+    </div>
   </div>
   <!-- search -->
   <div class="max-w-md mx-auto px-4 pb-2">
@@ -163,14 +173,14 @@
       <span class="pl-4 pr-2 text-sm text-[var(--ink)]/60">+91</span>
       <input id="custPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number" class="flex-1 bg-transparent py-3 pr-4 text-sm outline-none" />
     </div>
-    <p id="phoneError" class="hidden text-[11px] text-red-600 mb-2">Enter a valid 10-digit mobile number</p>
+    <p id="phoneError" class="hidden text-xs text-red-600 mb-2">Enter a valid 10-digit mobile number</p>
 
     <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1 mt-2">Delivery location *</label>
     <button id="shareLocationBtn" class="tap w-full flex items-center gap-2 justify-center bg-[var(--sage-deep)] text-[var(--green-dark)] font-semibold text-sm py-3 rounded-xl mb-1">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
       <span id="locationBtnLabel">Share my current location</span>
     </button>
-    <p id="locationStatus" class="text-[11px] text-[var(--ink)]/50 mb-2"></p>
+    <p id="locationStatus" class="text-xs text-[var(--ink)]/50 mb-2"></p>
 
     <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1 mt-1">Address / landmark (optional)</label>
     <textarea id="custAddress" rows="2" placeholder="House no, street, landmark" class="w-full bg-[var(--sage)] rounded-xl px-4 py-3 text-sm mb-4 outline-none resize-none"></textarea>
@@ -198,9 +208,46 @@
   </div>
 </div>
 
+<!-- ============ PROFILE MODAL ============ -->
+<div id="profileModal" class="sheet fixed inset-0 z-50 bg-black/40 flex items-end sm:items-center justify-center">
+  <div class="bg-white rounded-t-3xl sm:rounded-3xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-1">
+      <h2 class="font-head font-bold text-lg text-[var(--green-dark)]">Your Profile</h2>
+      <button id="closeProfile" class="tap text-2xl text-black/40">&times;</button>
+    </div>
+    <p class="text-xs text-[var(--ink)]/50 mb-4">Saved on this device only, to speed up checkout next time.</p>
+
+    <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1">Name</label>
+    <input id="profName" placeholder="e.g. Priya Sharma" class="w-full bg-[var(--sage)] rounded-xl px-4 py-3 text-sm mb-3 outline-none" />
+
+    <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1">Mobile number</label>
+    <div class="flex items-center bg-[var(--sage)] rounded-xl mb-1 overflow-hidden">
+      <span class="pl-4 pr-2 text-sm text-[var(--ink)]/60">+91</span>
+      <input id="profPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10-digit mobile number" class="flex-1 bg-transparent py-3 pr-4 text-sm outline-none" />
+    </div>
+    <p id="profPhoneError" class="hidden text-xs text-red-600 mb-2">Enter a valid 10-digit mobile number</p>
+
+    <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1 mt-2">Email</label>
+    <input id="profEmail" type="email" placeholder="e.g. priya@email.com" class="w-full bg-[var(--sage)] rounded-xl px-4 py-3 text-sm mb-1 outline-none" />
+    <p id="profEmailError" class="hidden text-xs text-red-600 mb-2">Enter a valid email address</p>
+
+    <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1 mt-2">Default delivery address</label>
+    <textarea id="profAddress" rows="2" placeholder="House no, street, landmark" class="w-full bg-[var(--sage)] rounded-xl px-4 py-3 text-sm mb-3 outline-none resize-none"></textarea>
+
+    <label class="block text-xs font-semibold text-[var(--ink)]/60 mb-1">Alternate contact number (optional)</label>
+    <div class="flex items-center bg-[var(--sage)] rounded-xl mb-4 overflow-hidden">
+      <span class="pl-4 pr-2 text-sm text-[var(--ink)]/60">+91</span>
+      <input id="profAltPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="Optional" class="flex-1 bg-transparent py-3 pr-4 text-sm outline-none" />
+    </div>
+
+    <button id="profSaveBtn" class="tap w-full bg-[var(--orange)] hover:bg-[var(--orange-dark)] text-white font-head font-bold py-3.5 rounded-2xl mb-2">Save Profile</button>
+    <button id="profClearBtn" class="tap w-full text-red-600 font-semibold text-sm py-2">Clear saved details</button>
+  </div>
+</div>
+
 <!-- ============ ADMIN ENTRY (footer) ============ -->
 <footer id="customerFooter" class="max-w-md mx-auto px-4 pb-6 pt-2 text-center">
-  <a href="#admin" class="text-[11px] text-[var(--ink)]/40 underline">Admin login</a>
+  <a href="#admin" class="text-xs text-[var(--ink)]/40 underline">Admin login</a>
 </footer>
 
 <!-- ============ ADMIN LOGIN ============ -->
@@ -224,8 +271,8 @@
     <button id="verifyOtpBtn" class="tap w-full bg-[var(--green)] text-white font-head font-bold py-3 rounded-xl">Verify & Login</button>
   </div>
 
-  <p id="adminLoginError" class="hidden text-[12px] text-red-600 mt-3 text-center"></p>
-  <a href="#" id="backToStoreBtn" class="text-[12px] text-[var(--ink)]/40 underline mt-6">Back to store</a>
+  <p id="adminLoginError" class="hidden text-xs text-red-600 mt-3 text-center"></p>
+  <a href="#" id="backToStoreBtn" class="text-xs text-[var(--ink)]/40 underline mt-6">Back to store</a>
 </div>
 
 <!-- ============ ADMIN DASHBOARD ============ -->
@@ -308,12 +355,12 @@
    Project: lelo-sab-kuchh
    ========================================================= */
 const firebaseConfig = {
-  apiKey: "AIzaSyAs_2kLgsw3udhZXcbODAf5GduXfOjVG3Q",
+  apiKey: "PASTE_YOUR_API_KEY",
   authDomain: "lelo-sab-kuchh.firebaseapp.com",
   projectId: "lelo-sab-kuchh",
   storageBucket: "lelo-sab-kuchh.appspot.com",
-  messagingSenderId: "342006864517",
-  appId: "1:342006864517:web:01be2ea13bb213609267ec"
+  messagingSenderId: "PASTE_SENDER_ID",
+  appId: "PASTE_APP_ID"
 };
 
 const ADMIN_PHONES = ['+918929394920']; // E.164 format. Add more admins here if needed.
@@ -367,6 +414,79 @@ let ordersUnsub = null;
 let firstOrdersLoad = true;
 
 function saveCart(){ localStorage.setItem('lelo_cart', JSON.stringify(cart)); }
+
+/* =========================================================
+   PROFILE (device-local, no login needed)
+   ========================================================= */
+function loadProfile(){
+  try { return JSON.parse(localStorage.getItem('lelo_profile') || 'null') || {}; }
+  catch(e){ return {}; }
+}
+function saveProfileToStorage(p){ localStorage.setItem('lelo_profile', JSON.stringify(p)); }
+
+function renderProfileDot(){
+  const p = loadProfile();
+  const dot = document.getElementById('profileDot');
+  const hasInfo = !!(p.name || p.phone || p.email);
+  dot.classList.toggle('hidden', !hasInfo);
+}
+
+function openProfileModal(){
+  const p = loadProfile();
+  document.getElementById('profName').value = p.name || '';
+  document.getElementById('profPhone').value = p.phone || '';
+  document.getElementById('profEmail').value = p.email || '';
+  document.getElementById('profAddress').value = p.address || '';
+  document.getElementById('profAltPhone').value = p.altPhone || '';
+  document.getElementById('profPhoneError').classList.add('hidden');
+  document.getElementById('profEmailError').classList.add('hidden');
+  document.getElementById('profileModal').classList.add('show');
+}
+function closeProfileModal(){
+  document.getElementById('profileModal').classList.remove('show');
+}
+
+document.getElementById('profileBtn').addEventListener('click', openProfileModal);
+document.getElementById('closeProfile').addEventListener('click', closeProfileModal);
+
+['profPhone','profAltPhone'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', (e)=>{
+    e.target.value = e.target.value.replace(/\D/g,'').slice(0,10);
+  });
+});
+
+document.getElementById('profSaveBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('profName').value.trim();
+  const phone = document.getElementById('profPhone').value.trim();
+  const email = document.getElementById('profEmail').value.trim();
+  const address = document.getElementById('profAddress').value.trim();
+  const altPhone = document.getElementById('profAltPhone').value.trim();
+
+  const phoneError = document.getElementById('profPhoneError');
+  const emailError = document.getElementById('profEmailError');
+  phoneError.classList.add('hidden');
+  emailError.classList.add('hidden');
+
+  if (phone && phone.length !== 10) { phoneError.classList.remove('hidden'); return; }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { emailError.classList.remove('hidden'); return; }
+
+  saveProfileToStorage({ name, phone, email, address, altPhone });
+  renderProfileDot();
+  closeProfileModal();
+  toast('Profile saved');
+});
+
+document.getElementById('profClearBtn').addEventListener('click', ()=>{
+  if (!confirm('Clear your saved profile details from this device?')) return;
+  localStorage.removeItem('lelo_profile');
+  document.getElementById('profName').value = '';
+  document.getElementById('profPhone').value = '';
+  document.getElementById('profEmail').value = '';
+  document.getElementById('profAddress').value = '';
+  document.getElementById('profAltPhone').value = '';
+  renderProfileDot();
+  toast('Profile cleared');
+});
 
 /* =========================================================
    INSTALL PROMPT
@@ -447,7 +567,7 @@ function renderProducts(){
     if (!items || !items.length) return;
     const cat = categories.find(c=>c.id===catId);
     html += `<div class="mb-5">
-      <h3 class="font-head font-bold text-[15px] text-[var(--green-dark)] mb-2 flex items-center gap-1.5">
+      <h3 class="font-head font-bold text-base text-[var(--green-dark)] mb-2 flex items-center gap-1.5">
         <span>${cat ? cat.emoji || '🛒' : '🛒'}</span> ${cat ? cat.name : ''}
       </h3>
       <div class="grid grid-cols-2 gap-3">
@@ -468,21 +588,21 @@ function renderProducts(){
 function productCard(p){
   const qty = cart[p.id] || 0;
   const img = p.imageUrl
-    ? `<img src="${p.imageUrl}" class="w-full h-24 object-cover rounded-xl bg-[var(--sage)]" />`
-    : `<div class="w-full h-24 rounded-xl bg-[var(--sage-deep)] flex items-center justify-center text-3xl">${(categories.find(c=>c.id===p.categoryId)||{}).emoji || '🛒'}</div>`;
+    ? `<img src="${p.imageUrl}" class="w-full h-28 object-cover rounded-xl bg-[var(--sage)]" />`
+    : `<div class="w-full h-28 rounded-xl bg-[var(--sage-deep)] flex items-center justify-center text-4xl">${(categories.find(c=>c.id===p.categoryId)||{}).emoji || '🛒'}</div>`;
   return `
-  <div class="bg-white rounded-2xl p-2.5 border border-black/5">
+  <div class="bg-white rounded-2xl p-3 border border-black/5 shadow-sm">
     ${img}
-    <p class="font-semibold text-[13px] mt-2 leading-tight line-clamp-2">${p.name}</p>
-    <p class="text-[11px] text-[var(--ink)]/50 mb-2">${p.unit || ''}</p>
+    <p class="font-semibold text-sm mt-2.5 leading-tight line-clamp-2 min-h-[2.5em]">${p.name}</p>
+    <p class="text-xs text-[var(--ink)]/50 mb-2.5">${p.unit || ''}</p>
     <div class="flex items-center justify-between">
-      <span class="font-head font-bold text-[var(--green-dark)] text-sm">₹${p.price}</span>
+      <span class="font-head font-bold text-[var(--green-dark)] text-base">₹${p.price}</span>
       ${qty === 0
-        ? `<button data-add="${p.id}" class="tap bg-[var(--orange)] text-white text-xs font-bold px-3 py-1.5 rounded-full">ADD</button>`
-        : `<div class="flex items-center gap-2 bg-[var(--green)] rounded-full px-1">
-             <button data-minus="${p.id}" class="tap text-white w-6 h-6 text-base font-bold">−</button>
-             <span class="text-white text-xs font-bold w-4 text-center">${qty}</span>
-             <button data-add="${p.id}" class="tap text-white w-6 h-6 text-base font-bold">+</button>
+        ? `<button data-add="${p.id}" class="tap bg-[var(--orange)] text-white text-xs font-bold px-4 py-2 rounded-full shadow-sm shadow-orange-900/10">ADD</button>`
+        : `<div class="flex items-center gap-2.5 bg-[var(--green)] rounded-full px-1.5 py-0.5 shadow-sm">
+             <button data-minus="${p.id}" class="tap text-white w-6 h-6 text-lg font-bold leading-none">−</button>
+             <span class="text-white text-sm font-bold w-4 text-center">${qty}</span>
+             <button data-add="${p.id}" class="tap text-white w-6 h-6 text-lg font-bold leading-none">+</button>
            </div>`
       }
     </div>
@@ -584,6 +704,13 @@ document.getElementById('searchInput').addEventListener('input', (e)=>{
 function openCheckout(){
   if (cartLines().length === 0) { toast('Your cart is empty'); return; }
   closeCart();
+  const p = loadProfile();
+  const nameEl = document.getElementById('custName');
+  const phoneEl = document.getElementById('custPhone');
+  const addrEl = document.getElementById('custAddress');
+  if (!nameEl.value && p.name) nameEl.value = p.name;
+  if (!phoneEl.value && p.phone) phoneEl.value = p.phone;
+  if (!addrEl.value && p.address) addrEl.value = p.address;
   document.getElementById('checkoutModal').classList.add('show');
 }
 function closeCheckout(){
@@ -651,6 +778,18 @@ document.getElementById('confirmOrderBtn').addEventListener('click', async ()=>{
 
   try {
     const ref = await withTimeout(db.collection('orders').add(order), 12000, 'Placing order');
+
+    // Quietly remember these details for next time (only fill in what's missing)
+    const existingProfile = loadProfile();
+    saveProfileToStorage({
+      name: existingProfile.name || order.customerName || '',
+      phone: existingProfile.phone || order.phone || '',
+      email: existingProfile.email || '',
+      address: existingProfile.address || order.address || '',
+      altPhone: existingProfile.altPhone || ''
+    });
+    renderProfileDot();
+
     cart = {}; saveCart(); renderProducts(); renderCartUI();
     document.getElementById('custName').value = '';
     document.getElementById('custPhone').value = '';
@@ -893,7 +1032,7 @@ function renderOrders(orders){
     <div data-order-id="${o.id}" class="bg-white rounded-2xl p-4 border border-black/5">
       <div class="flex items-center justify-between mb-2">
         <span class="text-xs font-bold text-[var(--ink)]/40">#${o.id.slice(-6).toUpperCase()} · ${time}</span>
-        <span class="text-[10px] font-bold text-white px-2 py-1 rounded-full ${STATUS_COLOR[o.status]||'bg-gray-400'}">${STATUS_LABEL[o.status]||o.status}</span>
+        <span class="text-xs font-bold text-white px-2 py-1 rounded-full ${STATUS_COLOR[o.status]||'bg-gray-400'}">${STATUS_LABEL[o.status]||o.status}</span>
       </div>
       <p class="text-sm font-semibold">${o.customerName || 'Customer'} · <a href="tel:+91${o.phone}" class="text-[var(--green-dark)] underline">+91 ${o.phone}</a></p>
       ${o.address ? `<p class="text-xs text-[var(--ink)]/60 mt-0.5">${o.address}</p>` : ''}
@@ -935,9 +1074,16 @@ function populateCategorySelect(){
 
 function renderAdminCategories(){
   const wrap = document.getElementById('adminCategoryList');
-  wrap.innerHTML = categories.map(c=>`
-    <div class="bg-white rounded-xl p-3 flex items-center justify-between border border-black/5">
-      <span class="text-sm font-semibold">${c.emoji||'🛒'} ${c.name}</span>
+  const sorted = [...categories].sort((a,b)=>(a.order??0)-(b.order??0));
+  wrap.innerHTML = sorted.map((c,i)=>`
+    <div class="bg-white rounded-xl p-2.5 flex items-center justify-between border border-black/5">
+      <div class="flex items-center gap-2">
+        <div class="flex flex-col gap-0.5">
+          <button data-catup="${c.id}" ${i===0?'disabled':''} class="tap w-6 h-6 flex items-center justify-center rounded text-xs leading-none ${i===0?'text-black/20':'text-[var(--green-dark)] bg-[var(--sage)]'}">▲</button>
+          <button data-catdown="${c.id}" ${i===sorted.length-1?'disabled':''} class="tap w-6 h-6 flex items-center justify-center rounded text-xs leading-none ${i===sorted.length-1?'text-black/20':'text-[var(--green-dark)] bg-[var(--sage)]'}">▼</button>
+        </div>
+        <span class="text-sm font-semibold">${c.emoji||'🛒'} ${c.name}</span>
+      </div>
       <button data-delcat="${c.id}" class="tap text-xs text-red-600 font-semibold">Delete</button>
     </div>`).join('');
   wrap.querySelectorAll('[data-delcat]').forEach(btn=>{
@@ -945,6 +1091,12 @@ function renderAdminCategories(){
       if (!confirm('Delete this category? Products in it will remain but be uncategorized.')) return;
       await db.collection('categories').doc(btn.dataset.delcat).delete();
     });
+  });
+  wrap.querySelectorAll('[data-catup]').forEach(btn=>{
+    btn.addEventListener('click', ()=> reorderCategory(btn.dataset.catup, -1));
+  });
+  wrap.querySelectorAll('[data-catdown]').forEach(btn=>{
+    btn.addEventListener('click', ()=> reorderCategory(btn.dataset.catdown, 1));
   });
 
   const seedWrap = document.getElementById('seedWrap');
@@ -956,11 +1108,26 @@ function renderAdminCategories(){
   }
 }
 
+async function reorderCategory(id, direction){
+  const sorted = [...categories].sort((a,b)=>(a.order??0)-(b.order??0));
+  const idx = sorted.findIndex(c=>c.id===id);
+  const swapIdx = idx + direction;
+  if (swapIdx < 0 || swapIdx >= sorted.length) return;
+  const a = sorted[idx], b = sorted[swapIdx];
+  try {
+    const batch = db.batch();
+    batch.update(db.collection('categories').doc(a.id), { order: b.order ?? 0 });
+    batch.update(db.collection('categories').doc(b.id), { order: a.order ?? 0 });
+    await withTimeout(batch.commit(), 10000, 'Reordering');
+  } catch (err) { toast(err.message || 'Could not reorder', 'error'); }
+}
+
 document.getElementById('addCategoryBtn').addEventListener('click', async ()=>{
   const input = document.getElementById('newCategoryInput');
   const name = input.value.trim();
   if (!name) return;
-  await db.collection('categories').add({ name, emoji:'🛒', order: categories.length });
+  const maxOrder = categories.length ? Math.max(...categories.map(c=>c.order ?? 0)) : -1;
+  await db.collection('categories').add({ name, emoji:'🛒', order: maxOrder + 1 });
   input.value = '';
 });
 
@@ -969,28 +1136,89 @@ document.getElementById('addCategoryBtn').addEventListener('click', async ()=>{
    ========================================================= */
 function renderAdminProducts(){
   const wrap = document.getElementById('adminProductList');
-  wrap.innerHTML = products.map(p=>{
-    const cat = categories.find(c=>c.id===p.categoryId);
-    return `
-    <div class="bg-white rounded-xl p-3 flex items-center gap-3 border border-black/5">
-      <div class="w-12 h-12 rounded-lg bg-[var(--sage)] flex items-center justify-center text-xl overflow-hidden shrink-0">
-        ${p.imageUrl ? `<img src="${p.imageUrl}" class="w-full h-full object-cover"/>` : (cat ? cat.emoji : '🛒')}
+
+  if (categories.length === 0) {
+    wrap.innerHTML = `<p class="text-center text-sm text-[var(--ink)]/50 py-8">Add a category first, in the Categories tab.</p>`;
+    return;
+  }
+
+  const sortedCats = [...categories].sort((a,b)=>(a.order??0)-(b.order??0));
+  let html = '';
+
+  sortedCats.forEach(cat=>{
+    const items = products.filter(p=>p.categoryId===cat.id).sort((a,b)=>(a.order??0)-(b.order??0));
+    html += `<div class="mb-5">
+      <div class="flex items-center justify-between mb-2">
+        <h3 class="font-head font-bold text-sm text-[var(--green-dark)] flex items-center gap-1.5">${cat.emoji||'🛒'} ${cat.name}</h3>
+        <button data-addto="${cat.id}" class="tap text-xs font-bold text-[var(--orange)]">+ Add item</button>
       </div>
-      <div class="flex-1 min-w-0">
-        <p class="text-sm font-semibold truncate">${p.name} ${p.inStock===false ? '<span class=\"text-red-500 text-[10px]\">(out of stock)</span>' : ''}</p>
-        <p class="text-xs text-[var(--ink)]/50">₹${p.price} ${p.unit||''} · ${cat ? cat.name : 'Uncategorized'}</p>
+      <div class="space-y-2">
+        ${items.length ? items.map((p,i)=>adminProductRow(p, cat, i===0, i===items.length-1)).join('') : `<p class="text-xs text-[var(--ink)]/40 pl-1">No items in this category yet</p>`}
       </div>
-      <button data-editprod="${p.id}" class="tap text-xs font-semibold text-[var(--green-dark)] bg-[var(--sage)] px-3 py-1.5 rounded-full">Edit</button>
     </div>`;
-  }).join('');
+  });
+
+  const uncategorized = products.filter(p=>!categories.find(c=>c.id===p.categoryId));
+  if (uncategorized.length) {
+    html += `<div class="mb-5">
+      <h3 class="font-head font-bold text-sm text-gray-500 mb-2">Uncategorized</h3>
+      <div class="space-y-2">${uncategorized.map((p,i)=>adminProductRow(p, null, i===0, i===uncategorized.length-1)).join('')}</div>
+    </div>`;
+  }
+
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll('[data-addto]').forEach(btn=>{
+    btn.addEventListener('click', ()=> openProductModal(null, btn.dataset.addto));
+  });
   wrap.querySelectorAll('[data-editprod]').forEach(btn=>{
     btn.addEventListener('click', ()=> openProductModal(btn.dataset.editprod));
   });
+  wrap.querySelectorAll('[data-moveup]').forEach(btn=>{
+    btn.addEventListener('click', ()=> reorderProduct(btn.dataset.moveup, -1));
+  });
+  wrap.querySelectorAll('[data-movedown]').forEach(btn=>{
+    btn.addEventListener('click', ()=> reorderProduct(btn.dataset.movedown, 1));
+  });
+}
+
+function adminProductRow(p, cat, isFirst, isLast){
+  return `
+  <div class="bg-white rounded-xl p-2.5 flex items-center gap-2 border border-black/5">
+    <div class="flex flex-col gap-0.5 shrink-0">
+      <button data-moveup="${p.id}" ${isFirst?'disabled':''} class="tap w-6 h-6 flex items-center justify-center rounded text-xs leading-none ${isFirst?'text-black/20':'text-[var(--green-dark)] bg-[var(--sage)]'}">▲</button>
+      <button data-movedown="${p.id}" ${isLast?'disabled':''} class="tap w-6 h-6 flex items-center justify-center rounded text-xs leading-none ${isLast?'text-black/20':'text-[var(--green-dark)] bg-[var(--sage)]'}">▼</button>
+    </div>
+    <div class="w-12 h-12 rounded-lg bg-[var(--sage)] flex items-center justify-center text-xl overflow-hidden shrink-0">
+      ${p.imageUrl ? `<img src="${p.imageUrl}" class="w-full h-full object-cover"/>` : (cat ? cat.emoji : '🛒')}
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="text-sm font-semibold truncate">${p.name} ${p.inStock===false ? '<span class=\"text-red-500 text-xs\">(out of stock)</span>' : ''}</p>
+      <p class="text-xs text-[var(--ink)]/50">₹${p.price} ${p.unit||''}</p>
+    </div>
+    <button data-editprod="${p.id}" class="tap text-xs font-semibold text-[var(--green-dark)] bg-[var(--sage)] px-3 py-1.5 rounded-full shrink-0">Edit</button>
+  </div>`;
+}
+
+async function reorderProduct(id, direction){
+  const p = products.find(pr=>pr.id===id);
+  if (!p) return;
+  const group = products.filter(pr=>pr.categoryId===p.categoryId).sort((a,b)=>(a.order??0)-(b.order??0));
+  const idx = group.findIndex(pr=>pr.id===id);
+  const swapIdx = idx + direction;
+  if (swapIdx < 0 || swapIdx >= group.length) return;
+  const other = group[swapIdx];
+  try {
+    const batch = db.batch();
+    batch.update(db.collection('products').doc(p.id), { order: other.order ?? 0 });
+    batch.update(db.collection('products').doc(other.id), { order: p.order ?? 0 });
+    await withTimeout(batch.commit(), 10000, 'Reordering');
+  } catch (err) { toast(err.message || 'Could not reorder', 'error'); }
 }
 
 let pmImageFileObj = null;
 
-function openProductModal(id){
+function openProductModal(id, presetCategoryId){
   const modal = document.getElementById('productModal');
   document.getElementById('pmImageFile').value = '';
   pmImageFileObj = null;
@@ -1011,6 +1239,7 @@ function openProductModal(id){
     document.getElementById('pmName').value = '';
     document.getElementById('pmPrice').value = '';
     document.getElementById('pmUnit').value = '';
+    document.getElementById('pmCategory').value = presetCategoryId || (categories[0] ? categories[0].id : '');
     document.getElementById('pmInStock').checked = true;
     document.getElementById('pmImagePreview').src = './icons/icon-192.png';
     document.getElementById('pmDeleteBtn').classList.add('hidden');
@@ -1047,7 +1276,9 @@ document.getElementById('pmSaveBtn').addEventListener('click', async ()=>{
   const btn = document.getElementById('pmSaveBtn');
   btn.disabled = true; btn.textContent = 'Saving...';
   try {
-    const data = { name, price, unit, categoryId, inStock, order: id ? undefined : products.length };
+    const siblingOrders = products.filter(p=>p.categoryId===categoryId).map(p=>p.order ?? 0);
+    const nextOrder = siblingOrders.length ? Math.max(...siblingOrders) + 1 : 0;
+    const data = { name, price, unit, categoryId, inStock, order: id ? undefined : nextOrder };
     Object.keys(data).forEach(k => data[k] === undefined && delete data[k]);
 
     let docId = id;
@@ -1138,6 +1369,7 @@ async function seedSampleData(){
    ========================================================= */
 subscribeCatalog();
 renderCartUI();
+renderProfileDot();
 routeHash();
 </script>
 </body>
