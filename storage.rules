@@ -2,15 +2,19 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    match /product-images/{fileName} {
-      // Anyone can view product photos (needed so the storefront can show them)
-      allow read: if true;
+    function isAdmin() {
+      return request.auth != null &&
+        request.auth.token.phone_number in ['+918929394920','+917497073993'];
+    }
 
-      // Only the admin can upload/replace/delete product photos
-      allow write: if request.auth != null &&
-        request.auth.token.phone_number in ['+918929394920'] &&
-        request.resource.size < 3 * 1024 * 1024 &&
-        request.resource.contentType.matches('image/.*');
+    match /item-requests/{fileName} {
+      allow write: if request.resource.size < 25 * 1024 * 1024;
+      allow read: if isAdmin();
+    }
+
+    match /product-images/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }
