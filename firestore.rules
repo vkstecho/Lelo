@@ -4,9 +4,9 @@ service cloud.firestore {
 
     function isAdmin() {
       return request.auth != null &&
-        request.auth.token.phone_number in ['+918929394920'];
+        request.auth.token.phone_number in ['+918929394920','+917497073993'];
       // Add more admin numbers to this list if needed, e.g.:
-      // request.auth.token.phone_number in ['+918929394920', '+91XXXXXXXXXX'];
+      // request.auth.token.phone_number in ['+918929394920','+917497073993','+91XXXXXXXXXX'];
     }
 
     // Categories - anyone can browse, only admin can add/edit/delete
@@ -36,6 +36,19 @@ service cloud.firestore {
         request.resource.data.items.size() > 0 &&
         request.resource.data.subtotal is number &&
         request.resource.data.subtotal >= 0;
+    }
+
+    // Item Requests - "Can't find an item?" feature. Anyone (even not
+    // logged in) can CREATE a request (text/voice/photo/video), but only
+    // admin can read the request list, or mark/update/delete a request.
+    match /itemRequests/{requestId} {
+      allow read, update, delete: if isAdmin();
+
+      allow create: if
+        request.resource.data.keys().hasAll(['phone','status','createdAt']) &&
+        request.resource.data.status == 'new' &&
+        request.resource.data.phone is string &&
+        request.resource.data.phone.size() == 10;
     }
   }
 }
